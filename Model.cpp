@@ -14,6 +14,8 @@ using namespace std;
 #include "resource_manager.h"
 
 /*  Functions   */
+Model::Model() 
+    : Span_lrf(0), Span_udb(0) { }
 // Draws the model, and thus all its meshes
 void Model::Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::mat4 projection, glm::mat4 view)
 {
@@ -83,6 +85,15 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         vertices.push_back(vertex);
+        
+        // Update the model' sides distance to the origin if needed
+        Span_lrf.z = vertex.Position.x < Span_lrf.z ? vertex.Position.x : Span_lrf.z; //model is -x oriented so the min x is the front
+        Span_udb.z = vertex.Position.x > Span_udb.z ? vertex.Position.x : Span_udb.z; //max x is the back
+        Span_udb.y = vertex.Position.y < Span_udb.y ? vertex.Position.y : Span_udb.y; //min y is down
+        Span_udb.x = vertex.Position.y > Span_udb.x ? vertex.Position.y : Span_udb.x; //max y is up
+        Span_lrf.y = vertex.Position.z < Span_lrf.y ? vertex.Position.z : Span_lrf.y; //min z is right
+        Span_lrf.x = vertex.Position.z > Span_lrf.x ? vertex.Position.z : Span_lrf.x; //max z is left
+
     }
     // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
     for(GLuint i = 0; i < mesh->mNumFaces; i++)

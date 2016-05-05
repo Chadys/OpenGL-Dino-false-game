@@ -61,7 +61,7 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData)
             // Check block type from level data (2D level array)
             if (boxData[y][x] > 0 && boxData[y][x] < 10) // Block
             {
-                GLfloat size(1.0f);
+                GLfloat size(1);
                 glm::vec3 pos(x*size,(boxData[y][x]-5)*(size/2),-(y*size));
                 GameObject obj(pos, glm::vec3(size), ResourceManager::GetTexture("fence"), glm::vec3(1.0f, 0.0f, 0.0f));
                 this->Obj.push_back(obj);

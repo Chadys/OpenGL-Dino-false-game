@@ -38,20 +38,10 @@ public:
     void Bind() const;
 };
 
-class Texture3D
+class Texture3D : public Texture2D
 {
 public:
-    // Holds the ID of the texture object, used for all texture operations to reference to this particlar texture
-    GLuint ID;// Width and height of loaded image in pixels
-    // Texture Format
-    GLuint Internal_Format; // Format of texture object
-    GLuint Image_Format; // Format of loaded image
-    // Texture configuration
-    GLuint Wrap_S; // Wrapping mode on S axis
-    GLuint Wrap_T; // Wrapping mode on T axis
     GLuint Wrap_R; // Wrapping mode on R axis
-    GLuint Filter_Min; // Filtering mode if texture pixels < screen pixels
-    GLuint Filter_Max; // Filtering mode if texture pixels > screen pixels
     // Constructor (sets default texture modes)
     Texture3D();
     // Generates texture from image data

@@ -1,10 +1,7 @@
 #include "texture.h"
 
 Texture3D::Texture3D()
-    : Internal_Format(GL_RGB), Image_Format(GL_RGB), Wrap_S(GL_CLAMP_TO_EDGE), Wrap_T(GL_CLAMP_TO_EDGE), Wrap_R(GL_CLAMP_TO_EDGE), Filter_Min(GL_LINEAR_MIPMAP_LINEAR), Filter_Max(GL_LINEAR)
-{
-    glGenTextures(1, &this->ID);
-}
+    : Texture2D(), Wrap_R(GL_CLAMP_TO_EDGE) { }
 
 void Texture3D::Generate(GLuint width, GLuint height, unsigned char* data, GLuint i)
 {

@@ -15,7 +15,7 @@
 #include <GLFW/glfw3.h>
 #include "Camera.h"
 #include "game_level.h"
-#include "model.h"
+#include "game_model.h"
 #include <glm/glm.hpp>
 
 
@@ -53,7 +53,7 @@ private:
     GLboolean              firstMouse;
     std::vector<GameLevel> Levels;
     GLuint                 Level;
-    std::vector<Model>     Models;
+    std::vector<GameModel>     Models;
 };
 
 #endif

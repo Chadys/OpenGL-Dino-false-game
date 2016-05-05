@@ -51,12 +51,12 @@ void Game::Init()
 
     // Cubemap (Skybox)
     vector<const GLchar*> faces;
-    faces.push_back("textures/skyboxes/icyhell/rt.png");
-    faces.push_back("textures/skyboxes/icyhell/lf.png");
-    faces.push_back("textures/skyboxes/icyhell/up.png");
-    faces.push_back("textures/skyboxes/icyhell/dn.png");
-    faces.push_back("textures/skyboxes/icyhell/bk.png");
-    faces.push_back("textures/skyboxes/icyhell/ft.png");
+    faces.push_back("textures/skyboxes/mp_vod/rt.png");
+    faces.push_back("textures/skyboxes/mp_vod/lf.png");
+    faces.push_back("textures/skyboxes/mp_vod/up.png");
+    faces.push_back("textures/skyboxes/mp_vod/dn.png");
+    faces.push_back("textures/skyboxes/mp_vod/bk.png");
+    faces.push_back("textures/skyboxes/mp_vod/ft.png");
     Texture3D skybox = ResourceManager::LoadCubemap(faces, "skybox");
     // Load levels
     GameLevel one = GameLevel(skybox);
@@ -64,8 +64,11 @@ void Game::Init()
     this->Levels.push_back(one);
     this->Level = 0;
     // Load models
-    Model cat = ResourceManager::LoadModel("models3d/Raptor/Raptor.obj", "cat");
-    this->Models.push_back(cat);
+    GameModel raptor = GameModel("models3d/Raptor/Raptor.obj", "raptor");
+    raptor.Size = glm::vec3(0.2);
+    raptor.Rotation=180;
+    raptor.SetSide(DOWN_SIDE, 0.5);
+    this->Models.push_back(raptor);
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
     Renderer2d = new SpriteRenderer(shader, GL_FALSE, GL_TRUE);
@@ -132,7 +135,7 @@ void Game::Render()
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("sol"), glm::vec3(-(GLfloat)this->Width, -(GLfloat)(this->Height*3), -(GLfloat)(this->Height/2)), glm::vec2(this->Width*3, this->Height*3), 90.0f, glm::vec3(1.0f,0.0f,0.0f), projection3D, view);
 
     // Draw models
-    this->Models[0].Draw(ResourceManager::GetShader("model"), glm::vec3(0, 1.5, 0), glm::vec3(0.1), 180.0f, glm::vec3(0.0f,1.0f,0.0f), projection3D, view);
+    this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view);
 
     // Draw level
     this->Levels[this->Level].Draw(*Renderer3d, *RendererSkybox, projection3D, view);

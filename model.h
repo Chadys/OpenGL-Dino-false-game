@@ -1,5 +1,3 @@
-
-
 #pragma once
 // Std. Includes
 #include <string>
@@ -16,16 +14,19 @@ class Model
 {
 	friend class ResourceManager;
 public:
+    /*  Model Data  */
+	glm::vec3   Span_lrf, Span_udb;		//distance between each side of the model and its origin (left,right, front and up,down,back)
+
     // Constructor.
-    Model() { }
+    Model();
 
     // Draws the model, and thus all its meshes
     void Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::mat4 projection, glm::mat4 view);
     
 private:
     /*  Model Data  */
-    vector<Mesh> meshes;
-    string directory;
+    vector<Mesh>	meshes;
+    string			directory;
     vector<Texture> textures_loaded;	// Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 
     /*  Functions   */
