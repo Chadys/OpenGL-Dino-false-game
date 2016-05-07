@@ -14,8 +14,8 @@
 #include <sstream>
 
 
-GameLevel::GameLevel(Texture3D skybox) 
-    : Skybox(skybox) { }
+GameLevel::GameLevel(Texture3D bg) 
+    : Bg(bg) { }
 
 void GameLevel::Load(const GLchar *file)
 {
@@ -41,11 +41,11 @@ void GameLevel::Load(const GLchar *file)
     }
 }
 
-void GameLevel::Draw(SpriteRenderer &renderer, SpriteRenderer &skyrenderer, glm::mat4 projection, glm::mat4 view)
+void GameLevel::Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection, glm::mat4 view)
 {
     for (GameObject &box : this->Obj)
         box.Draw(renderer, projection, view);
-    skyrenderer.DrawSprite(this->Skybox, projection, view);
+    bgrenderer.DrawSprite(this->Bg, projection, view);
 }
 
 void GameLevel::init(std::vector<std::vector<GLint>> boxData)

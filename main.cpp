@@ -56,11 +56,11 @@ int main()
     glGetError();
 
     // OpenGL options
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_CULL_FACE); 
-    glLineWidth(3.0f); 
+    glLineWidth(5.0f); 
 
     // DeltaTime variables
     GLfloat deltaTime = 0.0f;
@@ -90,7 +90,7 @@ int main()
         game.Update(deltaTime);
     
         // Render
-        //glClearColor(0.4f, 0.0f, 0.8f, 1.0f);
+        glClearColor(0.4f, 0.0f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         game.Render();
         	

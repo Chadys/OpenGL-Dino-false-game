@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "game_level.h"
 #include "game_model.h"
+#include "sprite.h"
 #include <glm/glm.hpp>
 
 
@@ -53,7 +54,8 @@ private:
     GLboolean              firstMouse;
     std::vector<GameLevel> Levels;
     GLuint                 Level;
-    std::vector<GameModel>     Models;
+    std::vector<GameModel> Models;
+    std::vector<Sprite>    Sprites;
 };
 
 #endif

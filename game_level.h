@@ -28,13 +28,13 @@ class GameLevel
 public:
     // Level state
     std::vector<GameObject> Obj;
-    Texture3D Skybox;
+    Texture3D Bg;
     // Constructor
-    GameLevel(Texture3D skybox);
+    GameLevel(Texture3D bg);
     // Loads level from file
     void      Load(const GLchar *file);
     // Render level
-    void      Draw(SpriteRenderer &renderer, SpriteRenderer &skyrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    void      Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
 private:
     // Initialize level from tile data
     void      init(std::vector<std::vector<GLint>> tileData);

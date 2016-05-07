@@ -2,12 +2,19 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <vector>
+#include "texture.h"
+#include "sprite_renderer.h"
 
-#include <map>
-#include <string>
-using namespace std;
-
-
+enum State {
+    IDLE,
+    WALK,
+    BITE,
+    WHIP,
+    HURT,
+    JUMP,
+    DEAD
+};
 
 // Container of a character's sprite
 
@@ -15,23 +22,18 @@ class Sprite
 {
 public:
     // Object state
-    glm::vec3   							Position, Size, Velocity;
-    GLboolean								reversed;
+    glm::vec2   		Position, Size, Velocity;
+    GLboolean			Reversed;
     // Render state
-    Texture2D   							Sprite;
-    // The position and size (x,y,w,h) in the sprite sheet corresponding to each state of a character (vec4) and the number of images of that state (GLuint) accessed by the name of the state.
-    map<string, pair<glm::vec4,GLuint>>     States;
-    //glm::vec4	Idle,Walk,Bite,Whip,Hit,Jump,Lose;
+    Texture2D   		Sheet;
+    // column and line in the sprite sheet of the current displayed image
+    State				Action; //line
+    GLuint				N_img; //column
+    std::vector<GLuint> N_max;// number of the images composing each animation (classed by line number)
+    glm::vec2			Steps, Tex_coord; //width and height of one sprite in a 0-1 range for the sprite sheet and for the window
     // Constructor(s)
-    GameObject();
-    GameObject(glm::vec3 pos, glm::vec3 size, Texture2D sprite, glm::vec3 color = glm::vec3(1.0f), glm::vec3 velocity = glm::vec3(0.0f));
+    Sprite(Texture2D sprite, GLuint game_width, GLuint game_height);
+    Sprite(Texture2D sprite, GLuint game_width, GLuint game_height, std::vector<GLuint> N_max);
     // Draw sprite
     virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
 };
-
-#endif
-
-
-    map<string, pair<glm::vec4,GLuint>>     States;
-    pair<int,int> p1
-	p1.first >> p1.second;

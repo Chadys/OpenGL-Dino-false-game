@@ -11,24 +11,37 @@ void GameModel::Draw(Shader shader, glm::mat4 projection, glm::mat4 view){
 	this->model.Draw(shader, this->Position, this->Size, this->Rotation, this->Rotation_angle, projection, view);
 }
 
-void GameModel::SetSide(Side side, GLfloat pos){
-	switch(side){
+void GameModel::SetSide(GLfloat pos, Side side_local, Side side_model){
+	GLfloat newpos;
+	switch(side_model){
     	case UP_SIDE :
-    		this->Position.y = pos-(this->model.Span_udb.x*this->Size.y);
+    		newpos = pos-(this->model.Span_udb.x*this->Size.y);
     		break;
     	case DOWN_SIDE :
-    		this->Position.y = pos-(this->model.Span_udb.y*this->Size.y);
+    		newpos = pos-(this->model.Span_udb.y*this->Size.y);
     		break;
     	case FRONT_SIDE :
-    		this->Position.x = pos-(this->model.Span_lrf.z*this->Size.x);
+    		newpos = pos-(this->model.Span_lrf.z*this->Size.x);
     		break;
     	case BACK_SIDE :
-    		this->Position.x = pos-(this->model.Span_udb.z*this->Size.x);
+    		newpos = pos-(this->model.Span_udb.z*this->Size.x);
     		break;
     	case LEFT_SIDE :
-    		this->Position.z = pos-(this->model.Span_lrf.x*this->Size.z);
+    		newpos = pos-(this->model.Span_lrf.x*this->Size.z);
     		break;
     	case RIGHT_SIDE :
-    		this->Position.z = pos-(this->model.Span_lrf.y*this->Size.z);
+    		newpos = pos-(this->model.Span_lrf.y*this->Size.z);
+	}
+	switch(side_local){
+    	case UP_SIDE :
+    	case DOWN_SIDE :
+    		this->Position.y = newpos;
+    		break;
+    	case FRONT_SIDE :
+    	case BACK_SIDE :
+    		this->Position.x = newpos;
+    		break;
+    	default :
+    		this->Position.z = newpos;
 	}
 }
