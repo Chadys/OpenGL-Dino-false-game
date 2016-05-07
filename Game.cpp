@@ -81,15 +81,17 @@ void Game::Init()
     n_max.push_back(1);
     n_max.push_back(1);
     n_max.push_back(1);
-    Sprite dino1 = Sprite(ResourceManager::GetTexture("dino1"), this->Width, this->Height, n_max);
-    dino1.Action=DEAD;
+    n_max.push_back(0);
+    Sprite dino1 = Sprite(ResourceManager::GetTexture("dino1"), n_max);
+    dino1.Position = glm::vec2(500,400);
+    dino1.Reversed = GL_TRUE;
     this->Sprites.push_back(bg);
     this->Sprites.push_back(dino1);
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
     RendererSkybox = new SpriteRenderer(ResourceManager::GetShader("skybox"), GL_TRUE);
-    RendererBG = new SpriteRenderer(shader, bg.Tex_coord.x, bg.Tex_coord.y);
-    RendererSprite = new SpriteRenderer(shader, dino1.Tex_coord.x, dino1.Tex_coord.y);
+    RendererBG = new SpriteRenderer(shader, bg.Sprite_size.x, bg.Sprite_size.y);
+    RendererSprite = new SpriteRenderer(shader, dino1.Sprite_size.x, dino1.Sprite_size.y);
 }
 
 void Game::Update(GLfloat dt)

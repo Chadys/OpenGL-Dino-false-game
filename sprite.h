@@ -30,10 +30,10 @@ public:
     State				Action; //line
     GLuint				N_img; //column
     std::vector<GLuint> N_max;// number of the images composing each animation (classed by line number)
-    glm::vec2			Steps, Tex_coord; //width and height of one sprite in a 0-1 range for the sprite sheet and for the window
+    glm::vec2			Sprite_size; //width and height of one sprite in the texture, in a 0-1 range
     // Constructor(s)
-    Sprite(Texture2D sprite, GLuint game_width, GLuint game_height);
-    Sprite(Texture2D sprite, GLuint game_width, GLuint game_height, std::vector<GLuint> N_max);
+    Sprite(Texture2D sprite, GLuint width, GLuint height);
+    Sprite(Texture2D sprite, std::vector<GLuint> N_max);
     // Draw sprite
     virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
 };
