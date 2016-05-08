@@ -6,7 +6,7 @@ CPPFLAGS := $(shell pkg-config --cflags $(packages))
 LIBS := $(shell pkg-config --static --libs $(packages))
 LDFLAGS = -lSOIL
 
-$(EXE): main.cpp ResourceManager.cpp Shader.cpp Texture2D.cpp Game.cpp SpriteRenderer.cpp GameObject.cpp GameLevel.cpp Model.cpp Texture3D.cpp GameModel.cpp Sprite.cpp
+$(EXE): main.cpp ResourceManager.cpp Shader.cpp Texture2D.cpp Game.cpp SpriteRenderer.cpp Object3D.cpp GameLevel.cpp Model.cpp Texture3D.cpp GameModel.cpp Object2D.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 clean:

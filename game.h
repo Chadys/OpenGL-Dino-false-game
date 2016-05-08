@@ -16,7 +16,7 @@
 #include "Camera.h"
 #include "game_level.h"
 #include "game_model.h"
-#include "sprite.h"
+#include "game_object.h"
 #include <glm/glm.hpp>
 
 
@@ -55,7 +55,7 @@ private:
     std::vector<GameLevel> Levels;
     GLuint                 Level;
     std::vector<GameModel> Models;
-    std::vector<Sprite>    Sprites;
+    std::vector<Object2D>  Sprites;
 };
 
 #endif

@@ -14,8 +14,6 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include <vector>
-
 #include "texture.h"
 #include "sprite_renderer.h"
 
@@ -29,8 +27,7 @@ public:
     // Render state
     Texture2D   Tex;	
     // Draw sprite
-    GameObject(Texture2D sprite) : Tex(sprite) { }
-    virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view) = 0;
+    virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4()) = 0;
 };
 
 // Container object for holding all state relevant for a single
@@ -44,7 +41,7 @@ public:
     GLfloat     Alpha, Rotation;
     glm::vec3   Rotation_angle;
     // Constructor(s)
-    // Object3D();
+    Object3D();
     Object3D(glm::vec3 pos, glm::vec3 size, Texture2D sprite, glm::vec3 color = glm::vec3(1.0f), glm::vec3 velocity = glm::vec3(0.0f));
     // Draw sprite
     virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());

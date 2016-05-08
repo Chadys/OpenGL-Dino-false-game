@@ -14,6 +14,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
+#include <cstdlib>     /* srand, rand */
+#include <ctime> 
+#include <memory>
 
 
 // Game-related State data
@@ -38,6 +42,9 @@ Game::~Game()
 
 void Game::Init()
 {
+    /* initialize random seed: */
+    srand (time(NULL));
+
     // Load shaders
     Shader shader = ResourceManager::LoadShader("shaders/jeu.vs", "shaders/jeu.fs", nullptr, "jeu");
     ResourceManager::LoadShader("shaders/model.vs", "shaders/model.fs", nullptr, "model");
@@ -46,10 +53,14 @@ void Game::Init()
     
     shader.Use().SetInteger("sprite", 0);
     // Load textures
-    ResourceManager::LoadTexture("textures/background.jpg", GL_FALSE, GL_TRUE, "bg");
+    std::unique_ptr<Tex> bg(new Texture2D(ResourceManager::LoadTexture("textures/background.jpg", GL_FALSE, GL_TRUE, "bg")));
     ResourceManager::LoadTexture("textures/bones3.jpg", GL_FALSE, GL_TRUE, "sol");
-    ResourceManager::LoadTexture("textures/fence.png", GL_TRUE, GL_FALSE, "fence");
+    ResourceManager::LoadTexture("textures/blocks/fence.png", GL_TRUE, GL_FALSE, "fence");
     ResourceManager::LoadTexture("textures/dino1.png", GL_TRUE, GL_FALSE, "dino1");
+    for (GLuint i = 0 ; i<6 ; i++)
+            ResourceManager::LoadTexture(("textures/blocks/bdc_grass_side0"+to_string(i)+".png").c_str(), GL_TRUE, GL_TRUE, "grass"+to_string(i));
+    ResourceManager::LoadTexture("textures/blocks/fern.png", GL_TRUE, GL_TRUE, "fern");
+    ResourceManager::LoadTexture("textures/blocks/vine.png", GL_TRUE, GL_TRUE, "vine");
 
     // Cubemap (Skybox)
     vector<const GLchar*> faces;
@@ -59,12 +70,13 @@ void Game::Init()
     faces.push_back("textures/skyboxes/mp_vod/dn.png");
     faces.push_back("textures/skyboxes/mp_vod/bk.png");
     faces.push_back("textures/skyboxes/mp_vod/ft.png");
-    Texture3D skybox = ResourceManager::LoadCubemap(faces, "skybox");
+    std::unique_ptr<Tex> skybox(new Texture3D(ResourceManager::LoadCubemap(faces, "skybox")));
     // Load levels
-    GameLevel one = GameLevel(skybox);
-    one.Load("levels/1.lvl");
-    this->Levels.push_back(one);
+    this->Levels.push_back(GameLevel(bg));
+    this->Levels[0].Load("levels/1.lvl", this->Width, this->Height);
     this->Level = 0;
+    this->Levels.push_back(GameLevel(skybox));
+    this->Levels[1].Load("levels/2.lvl");
     // Load models
     GameModel raptor = GameModel("models3d/Raptor/Raptor.obj", "raptor");
     raptor.Size = glm::vec3(0.2);
@@ -72,7 +84,6 @@ void Game::Init()
     raptor.SetSide(0.5, DOWN_SIDE);
     this->Models.push_back(raptor);
     // Load sprites
-    Sprite bg = Sprite(ResourceManager::GetTexture("bg"), this->Width, this->Height);
     std::vector<GLuint> n_max;
     n_max.push_back(6);
     n_max.push_back(8);
@@ -82,15 +93,14 @@ void Game::Init()
     n_max.push_back(1);
     n_max.push_back(1);
     n_max.push_back(0);
-    Sprite dino1 = Sprite(ResourceManager::GetTexture("dino1"), n_max);
-    dino1.Position = glm::vec2(500,400);
+    Object2D dino1 = Object2D(ResourceManager::GetTexture("dino1"), n_max);
+    dino1.Position = glm::vec2(this->Width/2-dino1.Size.x/2,this->Height/2-dino1.Size.y-ResourceManager::GetTexture("grass0").Height/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
     dino1.Reversed = GL_TRUE;
-    this->Sprites.push_back(bg);
     this->Sprites.push_back(dino1);
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
     RendererSkybox = new SpriteRenderer(ResourceManager::GetShader("skybox"), GL_TRUE);
-    RendererBG = new SpriteRenderer(shader, bg.Sprite_size.x, bg.Sprite_size.y);
+    RendererBG = new SpriteRenderer(shader, 1, 1);
     RendererSprite = new SpriteRenderer(shader, dino1.Sprite_size.x, dino1.Sprite_size.y);
 }
 
@@ -140,10 +150,11 @@ void Game::ProcessMouseScroll(GLdouble yoffset)
 void Game::Render()
 {    
 	// Create camera transformation
-    glm::mat4 view;
-    view = this->Cam.GetViewMatrix();
-    glm::mat4 projection3D = glm::perspective(glm::radians(this->Cam.Zoom), static_cast<GLfloat>(this->Width)/static_cast<GLfloat>(this->Height), 0.1f, 1000.0f);
-    glm::mat4 projection2D = glm::ortho(0.0f, static_cast<GLfloat>(this->Width), static_cast<GLfloat>(this->Height), 0.0f, -1.0f, 1.0f);
+    glm::mat4 view3D, view2D, projection3D, projection2D;
+    view3D = this->Cam.GetViewMatrix();
+    view2D = this->Cam.GetViewMatrix2D();
+    projection3D = glm::perspective(glm::radians(this->Cam.Zoom), static_cast<GLfloat>(this->Width)/static_cast<GLfloat>(this->Height), 0.1f, 1000.0f);
+    projection2D = glm::ortho(0.0f, static_cast<GLfloat>(this->Width), static_cast<GLfloat>(this->Height), 0.0f, -1.0f, 1.0f);
 
 
     // Draw background
@@ -151,13 +162,13 @@ void Game::Render()
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("sol"), glm::vec3(-(GLfloat)this->Width, -(GLfloat)(this->Height*3), -(GLfloat)(this->Height/2)), glm::vec2(this->Width*3, this->Height*3), 90.0f, glm::vec3(1.0f,0.0f,0.0f), projection3D, view);
 
     // Draw 2D
-    this->Sprites[0].Draw(*RendererBG,projection2D);
-    this->Sprites[1].Draw(*RendererSprite,projection2D);
+    this->Levels[0].Draw(*RendererBG, this->Width, this->Height, projection2D, view2D);
+    this->Sprites[0].Draw(*RendererSprite,projection2D, view2D);
 
     // // Draw models
-    // this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view);
+    // this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
     // // Draw level
-    // this->Levels[this->Level].Draw(*Renderer3d, *RendererSkybox, projection3D, view);
+    // this->Levels[1].Draw(*Renderer3d, *RendererSkybox, projection3D, view3D);
 
 }
 

@@ -30,7 +30,7 @@ SpriteRenderer::~SpriteRenderer()
     glDeleteVertexArrays(1, &this->quadVAO);
 }
 
-void SpriteRenderer::DrawSprite(const Texture2D &texture, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::vec3 color, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
+void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::vec3 color, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
 {
     // Prepare transformations
     this->shader.Use();
@@ -57,7 +57,7 @@ void SpriteRenderer::DrawSprite(const Texture2D &texture, glm::vec3 position, gl
     glBindVertexArray(0);
 }
 
-void SpriteRenderer::DrawSprite(const Texture2D &texture, glm::vec2 position, glm::vec2 size, GLboolean reversed, GLuint line, GLuint col, glm::vec2 steps, glm::mat4 projection, glm::mat4 view)
+void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec2 size, glm::mat4 projection, glm::mat4 view, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
 {
     //Prepare transformations
     this->shader.Use();
@@ -77,7 +77,7 @@ void SpriteRenderer::DrawSprite(const Texture2D &texture, glm::vec2 position, gl
     this->shader.SetMatrix4("projection", projection);
 
     this->shader.SetVector2uint("spritePos", col, line);
-    this->shader.SetVector2f("spriteStep", steps);
+    this->shader.SetVector2f("spriteStep", sprite_size);
     this->shader.SetInteger("is3D", GL_FALSE);
   
     glActiveTexture(GL_TEXTURE0);
@@ -88,7 +88,7 @@ void SpriteRenderer::DrawSprite(const Texture2D &texture, glm::vec2 position, gl
     glBindVertexArray(0);
 }
 
-void SpriteRenderer::DrawSprite(const Texture3D &texture, glm::mat4 projection, glm::mat4 view)
+void SpriteRenderer::DrawSprite(const Tex &texture, glm::mat4 projection, glm::mat4 view)
 {
     // Prepare transformations
     this->shader.Use(); 

@@ -1,7 +1,7 @@
 #include "texture.h"
 
 Texture3D::Texture3D()
-    : Texture2D(), Wrap_R(GL_CLAMP_TO_EDGE) { }
+    : Tex(), Wrap_R(GL_CLAMP_TO_EDGE) { }
 
 void Texture3D::Generate(GLuint width, GLuint height, unsigned char* data, GLuint i)
 {

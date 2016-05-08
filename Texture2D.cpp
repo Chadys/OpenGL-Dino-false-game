@@ -14,12 +14,9 @@
 
 
 Texture2D::Texture2D()
-    : Width(0), Height(0), Internal_Format(GL_RGB), Image_Format(GL_RGB), Wrap_S(GL_CLAMP_TO_EDGE), Wrap_T(GL_CLAMP_TO_EDGE), Filter_Min(GL_LINEAR_MIPMAP_LINEAR), Filter_Max(GL_LINEAR)
-{
-    glGenTextures(1, &this->ID);
-}
+    : Tex(), Width(0), Height(0) { }
 
-void Texture2D::Generate(GLuint width, GLuint height, unsigned char* data)
+void Texture2D::Generate(GLuint width, GLuint height, unsigned char* data, __attribute__((unused)) GLuint i)
 {
     this->Width = width;
     this->Height = height;

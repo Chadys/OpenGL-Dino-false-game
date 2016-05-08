@@ -11,6 +11,7 @@
 #ifndef GAMELEVEL_H
 #define GAMELEVEL_H
 #include <vector>
+#include <memory>
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -21,23 +22,28 @@
 #include "texture.h"
 
 
+
 /// GameLevel holds all Tiles as part of a Breakout level and 
 /// hosts functionality to Load/render levels from the harddisk.
 class GameLevel
 {
 public:
     // Level state
-    std::vector<GameObject> Obj;
-    Texture3D Bg;
+    std::vector<std::unique_ptr<GameObject>> Obj;
+    std::unique_ptr<Tex> Bg;
     // Constructor
-    GameLevel(Texture3D bg);
+    GameLevel(std::unique_ptr<Tex> &bg);
     // Loads level from file
     void      Load(const GLchar *file);
+    void      Load(const GLchar *file, GLuint width, GLuint height);
     // Render level
-    void      Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    virtual void      Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    virtual void      Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
 private:
     // Initialize level from tile data
-    void      init(std::vector<std::vector<GLint>> tileData);
+    std::vector<std::vector<GLint>>      load(const GLchar *file);
+    void                                 init(std::vector<std::vector<GLint>> tileData);
+    void                                 init(std::vector<std::vector<GLint>> tileData, GLuint width, GLuint height);
 };
 
 #endif
