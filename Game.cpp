@@ -28,8 +28,9 @@ SpriteRenderer  *RendererSkybox;
 
 
 Game::Game(GLuint width, GLuint height) 
-	: State(GAME_ACTIVE), Keys(), Width(width), Height(height), Cam(glm::vec3(0.0f, 0.0f, 3.0f)), lastX(400), lastY(300), firstMouse(true)
+	: State(GAME_2D), Keys(), Width(width), Height(height), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true)
 { 
+    this->Cam.MovementSpeed = 100.0f;
 }
 
 Game::~Game()
@@ -57,9 +58,10 @@ void Game::Init()
     ResourceManager::LoadTexture("textures/bones3.jpg", GL_FALSE, GL_TRUE, "sol");
     ResourceManager::LoadTexture("textures/blocks/fence.png", GL_TRUE, GL_FALSE, "fence");
     ResourceManager::LoadTexture("textures/dino1.png", GL_TRUE, GL_FALSE, "dino1");
+    ResourceManager::LoadTexture("textures/dino2.png", GL_TRUE, GL_FALSE, "dino2");
     for (GLuint i = 0 ; i<6 ; i++)
             ResourceManager::LoadTexture(("textures/blocks/bdc_grass_side0"+to_string(i)+".png").c_str(), GL_TRUE, GL_TRUE, "grass"+to_string(i));
-    ResourceManager::LoadTexture("textures/blocks/fern.png", GL_TRUE, GL_TRUE, "fern");
+    ResourceManager::LoadTexture("textures/blocks/fern.png", GL_TRUE, GL_FALSE, "fern");
     ResourceManager::LoadTexture("textures/blocks/vine.png", GL_TRUE, GL_TRUE, "vine");
 
     // Cubemap (Skybox)
@@ -97,6 +99,9 @@ void Game::Init()
     dino1.Position = glm::vec2(this->Width/2-dino1.Size.x/2,this->Height/2-dino1.Size.y-ResourceManager::GetTexture("grass0").Height/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
     dino1.Reversed = GL_TRUE;
     this->Sprites.push_back(dino1);
+    Object2D dino2 = Object2D(ResourceManager::GetTexture("dino2"), n_max);
+    dino2.Position = glm::vec2(this->Width/2-dino2.Size.x/2 + ResourceManager::GetTexture("grass0").Width*6, this->Height/2-dino2.Size.y-ResourceManager::GetTexture("grass0").Height/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
+    this->Sprites.push_back(dino2);
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
     RendererSkybox = new SpriteRenderer(ResourceManager::GetShader("skybox"), GL_TRUE);
@@ -106,21 +111,64 @@ void Game::Init()
 
 void Game::Update(GLfloat dt)
 {
-
+    for (Object2D &sprite : Sprites)
+        sprite.Update(dt);
 }
 
 
 void Game::ProcessInput(GLfloat dt)
 {
+    GLboolean move = GL_FALSE;
+
     // Camera controls
-    if(this->Keys[GLFW_KEY_W])
-        this->Cam.ProcessKeyboard(FORWARD, dt);
-    if(this->Keys[GLFW_KEY_S])
-        this->Cam.ProcessKeyboard(BACKWARD, dt);
-    if(this->Keys[GLFW_KEY_A])
-        this->Cam.ProcessKeyboard(LEFT, dt);
-    if(this->Keys[GLFW_KEY_D])
-        this->Cam.ProcessKeyboard(RIGHT, dt);
+    if(this->State == GAME_3D){
+        if(this->Keys[GLFW_KEY_S])
+            this->Cam.ProcessKeyboard(BACKWARD, dt);
+        if(this->Keys[GLFW_KEY_A])
+            this->Cam.ProcessKeyboard(LEFT, dt);
+        if(this->Keys[GLFW_KEY_D])
+            this->Cam.ProcessKeyboard(RIGHT, dt);
+        if(this->Keys[GLFW_KEY_W])
+            this->Cam.ProcessKeyboard(FORWARD, dt);
+
+        if(this->Keys[GLFW_KEY_ENTER])
+            this->Go2D();
+    }
+    else{
+        if(this->Keys[GLFW_KEY_S]){
+            this->Cam.ProcessKeyboard(DOWN, dt);
+            this->Sprites[0].SetState(DEAD);
+            move = GL_TRUE;
+        }
+        if(this->Keys[GLFW_KEY_A]){
+            this->Cam.ProcessKeyboard(LEFT, dt);
+            this->Sprites[0].Reversed = GL_FALSE;
+            this->Sprites[0].SetState(WALK);
+            move = GL_TRUE;
+        }
+        if(this->Keys[GLFW_KEY_D]){
+            this->Cam.ProcessKeyboard(RIGHT, dt);
+            this->Sprites[0].Reversed = GL_TRUE;
+            this->Sprites[0].SetState(WALK);
+            move = GL_TRUE;
+        }
+        if(this->Keys[GLFW_KEY_W]){
+            this->Cam.ProcessKeyboard(UP, dt);
+            this->Sprites[0].SetState(JUMP);
+            move = GL_TRUE;
+        }
+
+        if(this->Keys[GLFW_KEY_SPACE])
+            this->Sprites[0].SetState(WHIP);
+        if(this->Keys[GLFW_KEY_RIGHT_SHIFT])
+            this->Sprites[1].SetState(BITE);
+
+        if (!move && !this->Sprites[0].IsState(WHIP))
+            this->Sprites[0].SetState(IDLE);
+
+        if(this->Keys[GLFW_KEY_ENTER])
+            this->Go3D();
+    }
 }
 void Game::ProcessMouseMovement(GLdouble xpos, GLdouble ypos)
 {
@@ -156,19 +204,38 @@ void Game::Render()
     projection3D = glm::perspective(glm::radians(this->Cam.Zoom), static_cast<GLfloat>(this->Width)/static_cast<GLfloat>(this->Height), 0.1f, 1000.0f);
     projection2D = glm::ortho(0.0f, static_cast<GLfloat>(this->Width), static_cast<GLfloat>(this->Height), 0.0f, -1.0f, 1.0f);
 
-
     // Draw background
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("bg"), glm::vec3(0), glm::vec2(this->Width, this->Height), 0.0f, glm::vec3(0.0f,0.0f,1.0f), projection2D);
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("sol"), glm::vec3(-(GLfloat)this->Width, -(GLfloat)(this->Height*3), -(GLfloat)(this->Height/2)), glm::vec2(this->Width*3, this->Height*3), 90.0f, glm::vec3(1.0f,0.0f,0.0f), projection3D, view);
 
-    // Draw 2D
-    this->Levels[0].Draw(*RendererBG, this->Width, this->Height, projection2D, view2D);
-    this->Sprites[0].Draw(*RendererSprite,projection2D, view2D);
-
-    // // Draw models
-    // this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
-    // // Draw level
-    // this->Levels[1].Draw(*Renderer3d, *RendererSkybox, projection3D, view3D);
+    if(this->State == GAME_2D){
+        // Draw level
+        this->Levels[0].Draw(*RendererBG, this->Width, this->Height, projection2D, view2D);
+        // Draw sprites
+        this->Sprites[0].Draw(*RendererSprite,projection2D);
+        this->Sprites[1].Draw(*RendererSprite,projection2D, view2D);
+    }
+    
+    else {
+        // Draw models
+        this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
+        // Draw level
+        this->Levels[1].Draw(*Renderer3d, *RendererSkybox, projection3D, view3D);
+    }
 
 }
 
+void Game::Go2D(){
+    this->State = GAME_2D;
+    this->Cam = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE); 
+    this->Cam.MovementSpeed = 100.0f;
+}
+void Game::Go3D(){
+    this->State = GAME_3D;
+    this->Cam = Camera(glm::vec3(0.0f, 0.5-this->Models[0].model.Span_udb.y*this->Models[0].Size.y, 10.0f));
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE); 
+    this->Cam.MovementSpeed = SPEED;
+}

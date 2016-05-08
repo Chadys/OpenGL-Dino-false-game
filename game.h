@@ -22,8 +22,9 @@
 
 // Represents the current state of the game
 enum GameState {
-    GAME_ACTIVE,
-    GAME_MENU
+    GAME_MENU,
+    GAME_2D,
+    GAME_3D
 };
 
 // Game holds all game-related state and functionality.
@@ -48,6 +49,8 @@ public:
     void ProcessMouseScroll(GLdouble yoffset);
     void Update(GLfloat dt);
     void Render();
+    void Go2D();
+    void Go3D();
 private:
     Camera                 Cam;
     GLfloat                lastX, lastY;

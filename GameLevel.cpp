@@ -80,12 +80,12 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLui
              GLuint type_block = rand() % 6;
              Texture2D tex = ResourceManager::GetTexture("grass"+to_string(type_block));
              GLfloat x = (width/2-tex.Width/2) + i*tex.Width;
-             GLfloat y = (height/2-tex.Height/2)+(((boxData[0][i]%10)-5)*tex.Height);
+             GLfloat y = (height/2-tex.Height/2)-(((boxData[0][i]%10)-5)*tex.Height);
              this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y))));
 
              if ((boxData[0][i] > 10 && boxData[0][i] < 20) || boxData[0][i] > 30){   // Fern 
                  tex = ResourceManager::GetTexture("fern");
-                 this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y))));
+                 this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y-tex.Height))));
              }
              if (boxData[0][i] > 20){   // Vine 
                  tex = ResourceManager::GetTexture("vine");

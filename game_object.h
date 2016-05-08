@@ -68,10 +68,6 @@ public:
     // Object state
     glm::vec2           Position, Size, Velocity;
     GLboolean           Reversed;
-    // column and line in the sprite sheet of the current displayed image
-    State               Action; //line
-    GLuint              N_img; //column
-    std::vector<GLuint> N_max;// number of the images composing each animation (classed by line number)
     glm::vec2           Sprite_size; //width and height of one sprite in the texture, in a 0-1 range
     // Constructor(s)
     Object2D(Texture2D sprite, GLuint width, GLuint height);
@@ -79,6 +75,14 @@ public:
     Object2D(Texture2D sprite, std::vector<GLuint> N_max);
     // Draw sprite
     virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    void         Update(GLfloat dt);
+    void         SetState(State state);
+    GLboolean    IsState(State state);
+private:
+    // column and line in the sprite sheet of the current displayed image
+    State               Action; //line
+    GLdouble            N_img; //column
+    std::vector<GLuint> N_max;// number of the images composing each animation (classed by line number)
 };
 
 #endif
