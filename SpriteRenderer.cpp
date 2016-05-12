@@ -30,6 +30,7 @@ SpriteRenderer::~SpriteRenderer()
     glDeleteVertexArrays(1, &this->quadVAO);
 }
 
+// TEXTURED CUBE
 void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::vec3 color, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
 {
     // Prepare transformations
@@ -55,9 +56,11 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec3 position, glm::vec
     glBindVertexArray(this->quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
+    this->shader.SetInteger("is3D", GL_FALSE);
 }
 
-void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec2 size, glm::mat4 projection, glm::mat4 view, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
+// TEXTURED SQUARE
+void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec2 size, GLboolean border, glm::mat4 projection, glm::mat4 view, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
 {
     //Prepare transformations
     this->shader.Use();
@@ -76,9 +79,9 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec
     this->shader.SetMatrix4("view", view);
     this->shader.SetMatrix4("projection", projection);
 
+    this->shader.SetInteger("border", border);
     this->shader.SetVector2uint("spritePos", col, line);
     this->shader.SetVector2f("spriteStep", sprite_size);
-    this->shader.SetInteger("is3D", GL_FALSE);
   
     glActiveTexture(GL_TEXTURE0);
     texture.Bind();
@@ -88,6 +91,33 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec
     glBindVertexArray(0);
 }
 
+// COLORED SQUARE
+void SpriteRenderer::DrawSprite(glm::vec2 position, glm::vec2 size, GLboolean isCircle, glm::vec3 color1, glm::vec3 color2, Effect effect, glm::mat4 projection, glm::mat4 view, GLboolean border)
+{
+    //Prepare transformations
+    this->shader.Use();
+    glm::mat4 model;
+    model = glm::translate(model, glm::vec3(position,0.0f));  
+
+    model = glm::scale(model, glm::vec3(size, 0.0f)); 
+
+    this->shader.SetMatrix4("model", model);
+    this->shader.SetMatrix4("view", view);
+    this->shader.SetMatrix4("projection", projection);
+
+    this->shader.SetInteger("border", border);
+    this->shader.SetInteger("isCircle", isCircle);
+    this->shader.SetInteger("effect", effect);
+    this->shader.SetVector3f("color1", color1);
+    this->shader.SetVector3f("color2", color2);
+
+    glBindVertexArray(this->quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    this->shader.SetInteger("effect", -1);
+}
+
+// SKYBOX
 void SpriteRenderer::DrawSprite(const Tex &texture, glm::mat4 projection, glm::mat4 view)
 {
     // Prepare transformations
@@ -107,6 +137,7 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::mat4 projection, glm::m
     glDepthFunc(GL_LESS);
 }
 
+// FENCE CUBE
 void SpriteRenderer::initRenderData()
 {
     // Configure VAO/VBO
@@ -180,6 +211,7 @@ void SpriteRenderer::initRenderData()
     glBindVertexArray(0);
 }
 
+// SKYBOX
 void SpriteRenderer::initSkyboxRenderData()
 {
     // Configure VAO/VBO
@@ -245,7 +277,7 @@ void SpriteRenderer::initSkyboxRenderData()
     glBindVertexArray(0);
 }
 
-
+// SQUARE
 void SpriteRenderer::initRenderData(GLfloat tex_width, GLfloat tex_height)
 {
     // Configure VAO/VBO

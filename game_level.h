@@ -31,19 +31,22 @@ public:
     // Level state
     std::vector<std::unique_ptr<GameObject>> Obj;
     std::unique_ptr<Tex> Bg;
+    std::vector<Square> Squares;
     // Constructor
     GameLevel(std::unique_ptr<Tex> &bg);
     // Loads level from file
     void      Load(const GLchar *file);
     void      Load(const GLchar *file, GLuint width, GLuint height);
+    void      LoadMenu(GLuint width, GLuint height);
     // Render level
     virtual void      Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
-    virtual void      Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    virtual void      Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean menu = GL_FALSE);
 private:
     // Initialize level from tile data
     std::vector<std::vector<GLint>>      load(const GLchar *file);
     void                                 init(std::vector<std::vector<GLint>> tileData);
     void                                 init(std::vector<std::vector<GLint>> tileData, GLuint width, GLuint height);
+    void                                 initMenu(GLfloat width, GLfloat height);
 };
 
 #endif

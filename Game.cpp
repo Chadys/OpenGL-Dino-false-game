@@ -21,21 +21,21 @@
 
 
 // Game-related State data
-SpriteRenderer  *RendererBG;
+SpriteRenderer  *Renderer;
 SpriteRenderer  *RendererSprite;
 SpriteRenderer  *Renderer3d;
 SpriteRenderer  *RendererSkybox;
 
 
-Game::Game(GLuint width, GLuint height) 
-	: State(GAME_2D), Keys(), Width(width), Height(height), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true)
+Game::Game() 
+	: State(GAME_MENU), Keys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true)
 { 
     this->Cam.MovementSpeed = 100.0f;
 }
 
 Game::~Game()
 {
-    delete RendererBG;
+    delete Renderer;
     delete RendererSprite;
     delete Renderer3d;
     delete RendererSkybox;
@@ -54,15 +54,22 @@ void Game::Init()
     
     shader.Use().SetInteger("sprite", 0);
     // Load textures
-    std::unique_ptr<Tex> bg(new Texture2D(ResourceManager::LoadTexture("textures/background.jpg", GL_FALSE, GL_TRUE, "bg")));
-    ResourceManager::LoadTexture("textures/bones3.jpg", GL_FALSE, GL_TRUE, "sol");
+
+    // TEXTURE 3D
+    // ResourceManager::LoadTexture("textures/bones3.jpg", GL_FALSE, GL_TRUE, "sol");
     ResourceManager::LoadTexture("textures/blocks/fence.png", GL_TRUE, GL_FALSE, "fence");
+   // SPRITE TEXTURE 
     ResourceManager::LoadTexture("textures/dino1.png", GL_TRUE, GL_FALSE, "dino1");
     ResourceManager::LoadTexture("textures/dino2.png", GL_TRUE, GL_FALSE, "dino2");
+    //DECORS 2D
+    std::unique_ptr<Tex> bg(new Texture2D(ResourceManager::LoadTexture("textures/background.jpg", GL_FALSE, GL_TRUE, "bg")));
     for (GLuint i = 0 ; i<6 ; i++)
             ResourceManager::LoadTexture(("textures/blocks/bdc_grass_side0"+to_string(i)+".png").c_str(), GL_TRUE, GL_TRUE, "grass"+to_string(i));
     ResourceManager::LoadTexture("textures/blocks/fern.png", GL_TRUE, GL_FALSE, "fern");
     ResourceManager::LoadTexture("textures/blocks/vine.png", GL_TRUE, GL_TRUE, "vine");
+    // MENU
+    std::unique_ptr<Tex> menu(new Texture2D(ResourceManager::LoadTexture("textures/menu.png", GL_TRUE, GL_TRUE, "menu")));
+    ResourceManager::LoadTexture("textures/button-blue.png", GL_TRUE, GL_TRUE, "button");
 
     // Cubemap (Skybox)
     vector<const GLchar*> faces;
@@ -74,11 +81,13 @@ void Game::Init()
     faces.push_back("textures/skyboxes/mp_vod/ft.png");
     std::unique_ptr<Tex> skybox(new Texture3D(ResourceManager::LoadCubemap(faces, "skybox")));
     // Load levels
-    this->Levels.push_back(GameLevel(bg));
-    this->Levels[0].Load("levels/1.lvl", this->Width, this->Height);
+    this->Levels.push_back(GameLevel(menu));
+    this->Levels[0].LoadMenu((GLfloat)this->Width, (GLfloat)this->Height);
     this->Level = 0;
+    this->Levels.push_back(GameLevel(bg));
+    this->Levels[1].Load("levels/1.lvl", this->Width, this->Height);
     this->Levels.push_back(GameLevel(skybox));
-    this->Levels[1].Load("levels/2.lvl");
+    this->Levels[2].Load("levels/2.lvl");
     // Load models
     GameModel raptor = GameModel("models3d/Raptor/Raptor.obj", "raptor");
     raptor.Size = glm::vec3(0.2);
@@ -105,7 +114,7 @@ void Game::Init()
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
     RendererSkybox = new SpriteRenderer(ResourceManager::GetShader("skybox"), GL_TRUE);
-    RendererBG = new SpriteRenderer(shader, 1, 1);
+    Renderer = new SpriteRenderer(shader, 1, 1);
     RendererSprite = new SpriteRenderer(shader, dino1.Sprite_size.x, dino1.Sprite_size.y);
 }
 
@@ -170,6 +179,7 @@ void Game::ProcessInput(GLfloat dt)
             this->Go3D();
     }
 }
+
 void Game::ProcessMouseMovement(GLdouble xpos, GLdouble ypos)
 {
     if(this->firstMouse)
@@ -207,22 +217,23 @@ void Game::Render()
     // Draw background
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("bg"), glm::vec3(0), glm::vec2(this->Width, this->Height), 0.0f, glm::vec3(0.0f,0.0f,1.0f), projection2D);
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("sol"), glm::vec3(-(GLfloat)this->Width, -(GLfloat)(this->Height*3), -(GLfloat)(this->Height/2)), glm::vec2(this->Width*3, this->Height*3), 90.0f, glm::vec3(1.0f,0.0f,0.0f), projection3D, view);
-
-    if(this->State == GAME_2D){
-        // Draw level
-        this->Levels[0].Draw(*RendererBG, this->Width, this->Height, projection2D, view2D);
-        // Draw sprites
-        this->Sprites[0].Draw(*RendererSprite,projection2D);
-        this->Sprites[1].Draw(*RendererSprite,projection2D, view2D);
+    switch(this->State){
+        case (GAME_MENU):
+            this->Levels[0].Draw(*Renderer, this->Width, this->Height, projection2D, glm::mat4(), GL_TRUE);
+            break;
+        case(GAME_2D):
+            // Draw level
+            this->Levels[1].Draw(*Renderer, this->Width, this->Height, projection2D, view2D);
+            // Draw sprites
+            this->Sprites[0].Draw(*RendererSprite,projection2D);
+            this->Sprites[1].Draw(*RendererSprite,projection2D, view2D);
+            break;
+        default:
+            // Draw models
+            this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
+            // Draw level
+            this->Levels[2].Draw(*Renderer3d, *RendererSkybox, projection3D, view3D);
     }
-    
-    else {
-        // Draw models
-        this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
-        // Draw level
-        this->Levels[1].Draw(*Renderer3d, *RendererSkybox, projection3D, view3D);
-    }
-
 }
 
 void Game::Go2D(){
@@ -239,3 +250,25 @@ void Game::Go3D(){
     glEnable(GL_CULL_FACE); 
     this->Cam.MovementSpeed = SPEED;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// vec3 beziertest(vec3 depart,vec3 middle,vec3 arrivee,float t){
+//     vec3 bob;
+//     bob[0]=(1-t)*(1-t)*depart[0]+2*t*(1-t)*middle[0]+t*t*arrivee[0];
+//     bob[1]=(1-t)*(1-t)*depart[1]+2*t*(1-t)*middle[1]+t*t*arrivee[1];
+//     bob[2]=(1-t)*(1-t)*depart[2]+2*t*(1-t)*middle[2]+t*t*arrivee[2];
+//     return bob;
+// }

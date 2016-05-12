@@ -16,8 +16,8 @@
 
 //     }
 
-Object3D::Object3D(glm::vec3 pos, glm::vec3 size, Texture2D sprite, glm::vec3 color, glm::vec3 velocity) 
-    : GameObject(sprite), Position(pos), Size(size), Velocity(velocity), Color(color), Alpha(1.0f), Rotation(0.0f), Rotation_angle(0.0f, 0.0f, 1.0f) { }
+Object3D::Object3D(glm::vec3 pos, glm::vec3 size, Texture2D sprite, glm::vec3 color) 
+    : GameObject(sprite), Game_Object3D(pos, size, color) { }
 
 void Object3D::Draw(SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view)
 {

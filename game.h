@@ -15,7 +15,6 @@
 #include <GLFW/glfw3.h>
 #include "Camera.h"
 #include "game_level.h"
-#include "game_model.h"
 #include "game_object.h"
 #include <glm/glm.hpp>
 
@@ -39,7 +38,7 @@ public:
     GLuint                 Width, Height;
 
     // Constructor/Destructor
-    Game(GLuint width, GLuint height);
+    Game();
     ~Game();
     // Initialize game state (load all shaders/textures/levels)
     void Init();

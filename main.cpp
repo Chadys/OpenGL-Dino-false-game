@@ -22,9 +22,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 // Properties
-const GLuint screenWidth = 800, screenHeight = 600;
-
-Game game(screenWidth,screenHeight);
+Game game;
 
 // The MAIN function, from here we start our application and run our Game loop
 int main()
@@ -37,8 +35,18 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
+    GLFWmonitor* primary;
+    const GLFWvidmode* primary_mode;
+    primary = glfwGetPrimaryMonitor();
+    primary_mode = glfwGetVideoMode(primary);
+    game.Width=primary_mode->width;
+    game.Height=primary_mode->height;
+
+    const GLuint screenWidth = primary_mode->width, screenHeight = primary_mode->height;
+
+
     // Window
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "AWESOME CAT GAME", nullptr, nullptr); // Windowed
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "AWESOME RAPTOR GAME", glfwGetPrimaryMonitor(), nullptr); // Windowed
     glViewport(0, 0, screenWidth, screenHeight);
     glfwMakeContextCurrent(window);
 
@@ -60,7 +68,7 @@ int main()
 	//glEnable(GL_CULL_FACE); 
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glLineWidth(5.0f); 
+    glLineWidth(screenHeight/160); 
 
     // DeltaTime variables
     GLfloat deltaTime = 0.0f;

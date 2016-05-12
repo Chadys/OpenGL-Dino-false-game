@@ -51,7 +51,7 @@ public:
     }
 
     // Render the mesh
-    void Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::mat4 projection, glm::mat4 view) 
+    void Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, GLfloat alpha, glm::mat4 projection, glm::mat4 view) 
     {
         // Bind appropriate textures
         GLuint diffuseNr = 1;
@@ -82,6 +82,7 @@ public:
 
         // Also set each mesh's shininess property to a default value (if you want you could extend this to another mesh property and possibly change this value)
         shader.SetFloat("material.shininess", 16.0f);
+        shader.SetFloat("alpha", alpha);
         shader.SetMatrix4("projection", projection);
         shader.SetMatrix4("view", view);
         shader.SetMatrix4("model", model);

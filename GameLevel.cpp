@@ -33,6 +33,10 @@ void GameLevel::Load(const GLchar *file, GLuint width, GLuint height)
         this->init(boxData, width, height);
 }
 
+void GameLevel::LoadMenu(GLuint width, GLuint height)
+{
+    this->initMenu(width, height);
+}
 
 void GameLevel::Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection, glm::mat4 view)
 {
@@ -41,11 +45,13 @@ void GameLevel::Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::
     bgrenderer.DrawSprite(*this->Bg, projection, view);
 }
 
-void GameLevel::Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection, glm::mat4 view)
+void GameLevel::Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection, glm::mat4 view, GLboolean menu)
 {
-    renderer.DrawSprite(*this->Bg, glm::vec2(0), glm::vec2(width, height), projection);
+    renderer.DrawSprite(*this->Bg, glm::vec2(0), glm::vec2(width, height), menu, projection);
     for (std::unique_ptr<GameObject> &box : this->Obj)
        box->Draw(renderer, projection, view);
+    for (Square &s : this->Squares)
+        s.Draw(renderer, projection, view, menu);
 }
 
 void GameLevel::init(std::vector<std::vector<GLint>> boxData)
@@ -93,6 +99,38 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLui
              }
          }
      }
+}
+
+// void GameLevel::initMenu(GLfloat width, GLfloat height)
+// {
+//     Texture2D tex = ResourceManager::GetTexture("button");
+//     width /= 3;
+//     height /= 2;
+//     GLfloat b_width, b_height, x, y, pas_y;
+//     b_width = width;
+//     b_height = (1.0/3)*height;
+//     x = width*2.5 - b_width/2;
+//     y = height - b_height/2;
+//     pas_y = (1.0/3 * height)/2;
+
+//     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y + pas_y), glm::vec2(b_width, b_height))));
+//     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y + pas_y*3), glm::vec2(b_width, b_height))));
+//     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y + pas_y*5), glm::vec2(b_width, b_height))));
+// }
+void GameLevel::initMenu(GLfloat width, GLfloat height)
+{
+    width /= 3;
+    height /= 2;
+    GLfloat b_width, b_height, x, y, pas_y;
+    b_width = width;
+    b_height = (1.0/3)*height;
+    x = width*2.5 - b_width/2;
+    y = height - b_height/2;
+    pas_y = (1.0/3 * height)/2;
+
+    this->Squares.push_back(Square(glm::vec2(x,y + pas_y), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
+    this->Squares.push_back(Square(glm::vec2(x,y + pas_y*3), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
+    this->Squares.push_back(Square(glm::vec2(x,y + pas_y*5), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
 }
 
 

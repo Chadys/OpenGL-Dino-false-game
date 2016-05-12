@@ -21,7 +21,7 @@ public:
     Model();
 
     // Draws the model, and thus all its meshes
-    void Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::mat4 projection, glm::mat4 view);
+    void Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, GLfloat alpha, glm::mat4 projection, glm::mat4 view);
     
 private:
     /*  Model Data  */

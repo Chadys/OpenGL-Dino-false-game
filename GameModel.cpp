@@ -1,14 +1,14 @@
-#include "game_model.h"
+#include "game_object.h"
 #include "resource_manager.h"
 
 GameModel::GameModel(std::string file, std::string name)
-: Position(0), Size(1), Velocity(0.0f), Rotation_angle(0.0f, 1.0f, 0.0f), Rotation(0.0f)
+: Game_Object3D(glm::vec3(0), glm::vec3(1))
 {
     this->model = ResourceManager::LoadModel(file, name);
 }
 
 void GameModel::Draw(Shader shader, glm::mat4 projection, glm::mat4 view){
-	this->model.Draw(shader, this->Position, this->Size, this->Rotation, this->Rotation_angle, projection, view);
+	this->model.Draw(shader, this->Position, this->Size, this->Rotation, this->Rotation_angle, this->Alpha, projection, view);
 }
 
 void GameModel::SetSide(GLfloat pos, Side side_local, Side side_model){
