@@ -18,8 +18,10 @@
 
 #include "game_object.h"
 #include "sprite_renderer.h"
+#include "text_renderer.h"
 #include "resource_manager.h"
 #include "texture.h"
+#include "text.h"
 
 
 
@@ -32,6 +34,8 @@ public:
     std::vector<std::unique_ptr<GameObject>> Obj;
     std::unique_ptr<Tex> Bg;
     std::vector<Square> Squares;
+    std::vector<Text> Texts;
+    std::unique_ptr<TextRenderer> T_renderer;
     // Constructor
     GameLevel(std::unique_ptr<Tex> &bg);
     // Loads level from file

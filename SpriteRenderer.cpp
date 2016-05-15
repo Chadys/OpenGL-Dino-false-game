@@ -1,6 +1,6 @@
 
-
-/*******************************************************************
+/*****
+**************************************************************
 ** This code is part of Breakout.
 **
 ** Breakout is free software: you can redistribute it and/or modify

@@ -40,6 +40,8 @@ void GameLevel::LoadMenu(GLuint width, GLuint height)
 
 void GameLevel::Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection, glm::mat4 view)
 {
+    for (Text &text : this->Texts)
+        text.Draw(*this->T_renderer);
     for (std::unique_ptr<GameObject> &box : this->Obj)
         box->Draw(renderer, projection, view);
     bgrenderer.DrawSprite(*this->Bg, projection, view);
@@ -52,6 +54,8 @@ void GameLevel::Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm:
        box->Draw(renderer, projection, view);
     for (Square &s : this->Squares)
         s.Draw(renderer, projection, view, menu);
+    for (Text &text : this->Texts)
+        text.Draw(*this->T_renderer);
 }
 
 void GameLevel::init(std::vector<std::vector<GLint>> boxData)
@@ -85,17 +89,23 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLui
          {
              GLuint type_block = rand() % 6;
              Texture2D tex = ResourceManager::GetTexture("grass"+to_string(type_block));
-             GLfloat x = (width/2-tex.Width/2) + i*tex.Width;
-             GLfloat y = (height/2-tex.Height/2)-(((boxData[0][i]%10)-5)*tex.Height);
-             this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y))));
+             //the size of the texture is ok for a 800x600 screen, adapt it
+             glm::vec2 size = glm::vec2(tex.Width,tex.Height)*((GLfloat)width/800);
+
+             GLfloat x = (width/2-size.x/2) + i*size.x;
+
+             GLfloat dino_height = ResourceManager::GetTexture("dino1").Height/8*((GLfloat)width/800);
+             GLfloat y = (height/2-size.y/2)-(((boxData[0][i]%10)-5)*size.y)+dino_height+(size.y-dino_height)/2;
+
+             this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y), size)));
 
              if ((boxData[0][i] > 10 && boxData[0][i] < 20) || boxData[0][i] > 30){   // Fern 
                  tex = ResourceManager::GetTexture("fern");
-                 this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y-tex.Height))));
+                 this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y-size.y), size)));
              }
              if (boxData[0][i] > 20){   // Vine 
                  tex = ResourceManager::GetTexture("vine");
-                 this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y))));
+                 this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y), size)));
              }
          }
      }
@@ -119,18 +129,28 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLui
 // }
 void GameLevel::initMenu(GLfloat width, GLfloat height)
 {
-    width /= 3;
-    height /= 2;
-    GLfloat b_width, b_height, x, y, pas_y;
-    b_width = width;
-    b_height = (1.0/3)*height;
-    x = width*2.5 - b_width/2;
-    y = height - b_height/2;
-    pas_y = (1.0/3 * height)/2;
+    GLfloat b_width, b_height, x, y, b_x, b_y, pas_y, size_factor;
+    b_width = 0.75*(width/3);
+    b_height = 0.65*(1.0/3)*(height/2);
+    x = (width/3)*2.25;
+    y = 1.05*(height/2);
+    b_x = x - b_width/2;
+    b_y = y - b_height/2;
+    pas_y = (1.0/3 * height)/4.6;
+    // The font size is adapted for a 1920x1080 screen, adapt it (the screen size choosen is relatively big since text get pixelized if they're to much enlarged)
+    size_factor = (GLfloat)width/1920;
 
-    this->Squares.push_back(Square(glm::vec2(x,y + pas_y), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
-    this->Squares.push_back(Square(glm::vec2(x,y + pas_y*3), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
-    this->Squares.push_back(Square(glm::vec2(x,y + pas_y*5), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
+    this->Squares.push_back(Square(glm::vec2(b_x,b_y + pas_y), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
+    this->Texts.push_back(Text("Nouvelle Partie", glm::vec2(x,y + pas_y), size_factor));
+    
+    this->Squares.push_back(Square(glm::vec2(b_x,b_y + pas_y*3), glm::vec2(b_width, b_height), glm::vec3(0.6f,0.6f,0.6f), glm::vec3(0.2f,0.2f,0.2f), V_GRAD));
+    this->Texts.push_back(Text("Continuer", glm::vec2(x,y + pas_y*3), size_factor, glm::vec3(0.2)));
+
+    this->Squares.push_back(Square(glm::vec2(b_x,b_y + pas_y*5), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
+    this->Texts.push_back(Text("Quitter", glm::vec2(x,y + pas_y*5), size_factor));
+
+    this->T_renderer.reset(new TextRenderer(width, height));
+    this->T_renderer->Load("fonts/Futura_Bold_Font/a_FuturaOrto-Bold_2258.ttf",50);
 }
 
 
@@ -138,6 +158,8 @@ std::vector<std::vector<GLint>> GameLevel::load(const GLchar *file)
 {
     // Clear old data
     this->Obj.clear();
+    this->Squares.clear();
+    this->Texts.clear();
     // Load from file
     GLuint boxCode;
     std::string line;

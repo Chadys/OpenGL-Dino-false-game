@@ -116,7 +116,7 @@ public:
     // Constructor(s)
     Object2D(Texture2D sprite, glm::vec2 position);
     Object2D(Texture2D sprite, glm::vec2 position, glm::vec2 size);
-    Object2D(Texture2D sprite, std::vector<GLuint> N_max);
+    Object2D(Texture2D sprite, std::vector<GLuint> N_max, GLfloat size_factor = 1.0f, glm::vec2 position = glm::vec2(0));
     // Draw sprite
     virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
     void         Update(GLfloat dt);

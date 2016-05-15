@@ -23,12 +23,12 @@ Object2D::Object2D(Texture2D sprite, glm::vec2 position, glm::vec2 size)
         this->N_max=n_max;
     }
 
-Object2D::Object2D(Texture2D sprite, std::vector<GLuint> n_max)
-    : GameObject(sprite), Position(0), Reversed(GL_FALSE), Action(IDLE), N_img(0), N_max(n_max) {
+Object2D::Object2D(Texture2D sprite, std::vector<GLuint> n_max, GLfloat size_factor, glm::vec2 position)
+    : GameObject(sprite), Position(position), Reversed(GL_FALSE), Action(IDLE), N_img(0), N_max(n_max) {
         GLuint max = 1;
         for (GLuint n : this->N_max)
             max = n > max ? n : max;
-        this->Size=glm::vec2(sprite.Width/max,sprite.Height/this->N_max.size());
+        this->Size=glm::vec2(sprite.Width/max,sprite.Height/this->N_max.size())*size_factor;
         this->Sprite_size.x=1.0f/max;
         this->Sprite_size.y=1.0f/this->N_max.size();
     }

@@ -58,7 +58,7 @@ void Game::Init()
     // TEXTURE 3D
     // ResourceManager::LoadTexture("textures/bones3.jpg", GL_FALSE, GL_TRUE, "sol");
     ResourceManager::LoadTexture("textures/blocks/fence.png", GL_TRUE, GL_FALSE, "fence");
-   // SPRITE TEXTURE 
+    // SPRITE TEXTURE 
     ResourceManager::LoadTexture("textures/dino1.png", GL_TRUE, GL_FALSE, "dino1");
     ResourceManager::LoadTexture("textures/dino2.png", GL_TRUE, GL_FALSE, "dino2");
     //DECORS 2D
@@ -104,12 +104,11 @@ void Game::Init()
     n_max.push_back(1);
     n_max.push_back(1);
     n_max.push_back(0);
-    Object2D dino1 = Object2D(ResourceManager::GetTexture("dino1"), n_max);
-    dino1.Position = glm::vec2(this->Width/2-dino1.Size.x/2,this->Height/2-dino1.Size.y-ResourceManager::GetTexture("grass0").Height/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
+    Object2D dino1 = Object2D(ResourceManager::GetTexture("dino1"), n_max, (GLfloat)this->Width/800);
+    dino1.Position = glm::vec2(this->Width/2-dino1.Size.x/2,this->Height/2-dino1.Size.y/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
     dino1.Reversed = GL_TRUE;
     this->Sprites.push_back(dino1);
-    Object2D dino2 = Object2D(ResourceManager::GetTexture("dino2"), n_max);
-    dino2.Position = glm::vec2(this->Width/2-dino2.Size.x/2 + ResourceManager::GetTexture("grass0").Width*6, this->Height/2-dino2.Size.y-ResourceManager::GetTexture("grass0").Height/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
+    Object2D dino2 = Object2D(ResourceManager::GetTexture("dino2"), n_max, (GLfloat)this->Width/800, glm::vec2(dino1.Position.x + ResourceManager::GetTexture("grass0").Width*6*((GLfloat)this->Width/800), dino1.Position.y));
     this->Sprites.push_back(dino2);
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
