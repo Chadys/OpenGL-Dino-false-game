@@ -24,10 +24,10 @@ SpriteRenderer::~SpriteRenderer()
 }
 
 // TEXTURED CUBE
-void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::vec3 color, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
+void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, glm::vec3 color, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
 {
     // Prepare transformations
-    this->shader.Use();
+    manager.Active(this->shader);
     glm::mat4 model;
     model = glm::translate(model, glm::vec3(position));  // First translate (transformations are: scale happens first, then rotation and then final translation happens; reversed order)
 
@@ -44,7 +44,7 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec3 position, glm::vec
     this->shader.SetInteger("is3D", GL_TRUE);
 
     glActiveTexture(GL_TEXTURE0);
-    texture.Bind();
+    manager.ActiveTex2D(texture);
 
     glBindVertexArray(this->quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -53,10 +53,10 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec3 position, glm::vec
 }
 
 // TEXTURED SQUARE
-void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec2 size, GLboolean border, glm::mat4 projection, glm::mat4 view, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
+void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::vec2 position, glm::vec2 size, GLboolean border, glm::mat4 projection, glm::mat4 view, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
 {
     //Prepare transformations
-    this->shader.Use();
+    manager.Active(this->shader);
     glm::mat4 model;
     model = glm::translate(model, glm::vec3(position,0.0f));  
 
@@ -77,18 +77,18 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::vec2 position, glm::vec
     this->shader.SetVector2f("spriteStep", sprite_size);
   
     glActiveTexture(GL_TEXTURE0);
-    texture.Bind();
+    manager.ActiveTex2D(texture);
 
     glBindVertexArray(this->quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
 
 // COLORED SQUARE
-void SpriteRenderer::DrawSprite(glm::vec2 position, glm::vec2 size, GLboolean isCircle, glm::vec3 color1, glm::vec3 color2, Effect effect, glm::mat4 projection, glm::mat4 view, GLboolean border)
+void SpriteRenderer::DrawSprite(StateManager &manager, glm::vec2 position, glm::vec2 size, GLboolean isCircle, glm::vec3 color1, glm::vec3 color2, Effect effect, glm::mat4 projection, glm::mat4 view, GLboolean border)
 {
     //Prepare transformations
-    this->shader.Use();
+    manager.Active(this->shader);
     glm::mat4 model;
     model = glm::translate(model, glm::vec3(position,0.0f));  
 
@@ -105,16 +105,16 @@ void SpriteRenderer::DrawSprite(glm::vec2 position, glm::vec2 size, GLboolean is
     this->shader.SetVector3f("color2", color2);
 
     glBindVertexArray(this->quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
     this->shader.SetInteger("effect", -1);
 }
 
 // SKYBOX
-void SpriteRenderer::DrawSprite(const Tex &texture, glm::mat4 projection, glm::mat4 view)
+void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::mat4 projection, glm::mat4 view)
 {
     // Prepare transformations
-    this->shader.Use(); 
+    manager.Active(this->shader);
 
     glDepthFunc(GL_LEQUAL);
     view = glm::mat4(glm::mat3(view));
@@ -123,7 +123,7 @@ void SpriteRenderer::DrawSprite(const Tex &texture, glm::mat4 projection, glm::m
 
     glBindVertexArray(this->quadVAO);
     glActiveTexture(GL_TEXTURE0);
-    texture.Bind();
+    manager.ActiveTex3D(texture);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 
@@ -284,13 +284,10 @@ void SpriteRenderer::initRenderData(GLfloat tex_width, GLfloat tex_height)
 
     GLfloat vertices2d[] = {
         // Pos      // Tex
+        0.0f, 0.0f, 0.0f, 0.0f, 
         0.0f, 1.0f, 0.0f, tex_width,
         1.0f, 0.0f, tex_height, 0.0f, 
-        0.0f, 0.0f, 0.0f, 0.0f, 
-
-        0.0f, 1.0f, 0.0f, tex_width,
-        1.0f, 1.0f, tex_width, tex_height,
-        1.0f, 0.0f, tex_height, 0.0f
+        1.0f, 1.0f, tex_width, tex_height
     };
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2d), &vertices2d, GL_STATIC_DRAW);
     

@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "game_level.h"
 #include "game_object.h"
+#include "state_manager.h"
 #include <glm/glm.hpp>
 
 
@@ -23,7 +24,7 @@ enum Target {
 	NOP,
 	CAM_JUMP,
 	CAM_SLIDE,
-	MODEL
+	MODEL_JUMP
 };
 
 // Structure used for move using a Bezier's curve
@@ -46,6 +47,7 @@ public:
     GLboolean              Keys[1024];
     GLboolean              ProcessedKeys[1024];
     GLuint                 Width, Height;
+    StateManager		   State_manager;
 
     // Constructor/Destructor
     Game();

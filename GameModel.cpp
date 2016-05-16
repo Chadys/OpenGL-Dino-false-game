@@ -7,8 +7,8 @@ GameModel::GameModel(std::string file, std::string name)
     this->model = ResourceManager::LoadModel(file, name);
 }
 
-void GameModel::Draw(Shader shader, glm::mat4 projection, glm::mat4 view){
-	this->model.Draw(shader, this->Position, this->Size, this->Rotation, this->Rotation_angle, this->Alpha, projection, view);
+void GameModel::Draw(StateManager &manager, Shader shader, glm::mat4 projection, glm::mat4 view){
+	this->model.Draw(manager, shader, this->Position, this->Size, this->Rotation, this->Rotation_angle, this->Alpha, projection, view);
 }
 
 void GameModel::SetSide(GLfloat pos, Side side_local, Side side_model){

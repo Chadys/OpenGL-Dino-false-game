@@ -31,24 +31,24 @@ void GameLevel::LoadMenu(GLuint width, GLuint height)
     this->initMenu(width, height);
 }
 
-void GameLevel::Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection, glm::mat4 view)
+void GameLevel::Draw(StateManager &manager, SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection, glm::mat4 view)
 {
     for (Text &text : this->Texts)
-        text.Draw(*this->T_renderer);
+        text.Draw(manager,*this->T_renderer);
     for (std::unique_ptr<GameObject> &box : this->Obj)
-        box->Draw(renderer, projection, view);
-    bgrenderer.DrawSprite(*this->Bg, projection, view);
+        box->Draw(manager,renderer, projection, view);
+    bgrenderer.DrawSprite(manager, *this->Bg, projection, view);
 }
 
-void GameLevel::Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection, glm::mat4 view, GLboolean menu)
+void GameLevel::Draw(StateManager &manager, SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection, glm::mat4 view, GLboolean menu)
 {
-    renderer.DrawSprite(*this->Bg, glm::vec2(0), glm::vec2(width, height), menu, projection);
+    renderer.DrawSprite(manager, *this->Bg, glm::vec2(0), glm::vec2(width, height), menu, projection);
     for (std::unique_ptr<GameObject> &box : this->Obj)
-       box->Draw(renderer, projection, view);
+       box->Draw(manager,renderer, projection, view);
     for (Square &s : this->Squares)
-        s.Draw(renderer, projection, view, menu);
+        s.Draw(manager,renderer, projection, view, menu);
     for (Text &text : this->Texts)
-        text.Draw(*this->T_renderer);
+        text.Draw(manager,*this->T_renderer);
 }
 
 void GameLevel::init(std::vector<std::vector<GLint>> boxData)

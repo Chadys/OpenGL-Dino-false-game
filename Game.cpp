@@ -45,6 +45,7 @@ void Game::Init()
     Shader shader = ResourceManager::LoadShader("shaders/jeu.vs", "shaders/jeu.fs", nullptr, "jeu");
     ResourceManager::LoadShader("shaders/model.vs", "shaders/model.fs", nullptr, "model");
     ResourceManager::LoadShader("shaders/skybox.vs", "shaders/skybox.fs", nullptr, "skybox");
+    ResourceManager::LoadShader("shaders/text.vs", "shaders/text.fs", nullptr, "text");
     // Configure shaders
     
     shader.Use().SetInteger("sprite", 0);
@@ -64,8 +65,7 @@ void Game::Init()
     ResourceManager::LoadTexture("textures/blocks/vine.png", GL_TRUE, GL_TRUE, "vine");
     // MENU
     std::unique_ptr<Tex> menu(new Texture2D(ResourceManager::LoadTexture("textures/menu.png", GL_TRUE, GL_TRUE, "menu")));
-    ResourceManager::LoadTexture("textures/button-blue.png", GL_TRUE, GL_TRUE, "button");
-
+    
     // Cubemap (Skybox)
     vector<const GLchar*> faces;
     faces.push_back("textures/skyboxes/mp_vod/rt.png");
@@ -300,23 +300,23 @@ void Game::Render()
     //Renderer2d->DrawSprite(ResourceManager::GetTexture("sol"), glm::vec3(-(GLfloat)this->Width, -(GLfloat)(this->Height*3), -(GLfloat)(this->Height/2)), glm::vec2(this->Width*3, this->Height*3), 90.0f, glm::vec3(1.0f,0.0f,0.0f), projection3D, view);
     switch(this->State){
         case (GAME_MENU):
-            this->Levels[0].Draw(*Renderer, this->Width, this->Height, projection2D, glm::mat4(), GL_TRUE);
+            this->Levels[0].Draw(this->State_manager, *Renderer, this->Width, this->Height, projection2D, glm::mat4(), GL_TRUE);
             break;
         case(GAME_2D):
             // Draw level
-            this->Levels[1].Draw(*Renderer, this->Width, this->Height, projection2D, view3D);
+            this->Levels[1].Draw(this->State_manager, *Renderer, this->Width, this->Height, projection2D, view3D);
             // Draw sprites
-            this->Sprites[!Selected_sprite].Draw(*RendererSprite,projection2D, view3D);
+            this->Sprites[!Selected_sprite].Draw(this->State_manager, *RendererSprite,projection2D, view3D);
             if(this->bezier.target == CAM_SLIDE)
-            	this->Sprites[Selected_sprite].Draw(*RendererSprite,projection2D, view3D);
+            	this->Sprites[Selected_sprite].Draw(this->State_manager, *RendererSprite,projection2D, view3D);
             else
-            	this->Sprites[Selected_sprite].Draw(*RendererSprite,projection2D);
+            	this->Sprites[Selected_sprite].Draw(this->State_manager, *RendererSprite,projection2D);
             break;
         default: // 3D
             // Draw models
-            this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
+            this->Models[0].Draw(this->State_manager, ResourceManager::GetShader("model"), projection3D, view3D);
             // Draw level
-            this->Levels[2].Draw(*Renderer3d, *RendererSkybox, projection3D, view3D);
+            this->Levels[2].Draw(this->State_manager, *Renderer3d, *RendererSkybox, projection3D, view3D);
     }
 }
 

@@ -33,9 +33,9 @@ Object2D::Object2D(Texture2D sprite, std::vector<GLuint> n_max, GLfloat size_fac
         this->Sprite_size.y=1.0f/this->N_max.size();
     }
 
-void Object2D::Draw(SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view)
+void Object2D::Draw(StateManager &manager, SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view)
 {
-    renderer.DrawSprite(this->Tex, this->Position, this->Size, GL_FALSE, projection, view, this->Reversed, this->Action, (GLuint)this->N_img, this->Sprite_size);
+    renderer.DrawSprite(manager, this->Tex, this->Position, this->Size, GL_FALSE, projection, view, this->Reversed, this->Action, (GLuint)this->N_img, this->Sprite_size);
 }
 
 

@@ -15,6 +15,7 @@
 #include "resource_manager.h"
 #include "texture.h"
 #include "text.h"
+#include "state_manager.h"
 
 
 
@@ -36,8 +37,8 @@ public:
     void      Load(const GLchar *file, GLuint width, GLuint height);
     void      LoadMenu(GLuint width, GLuint height);
     // Render level
-    virtual void      Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
-    virtual void      Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean menu = GL_FALSE);
+    virtual void      Draw(StateManager &manager, SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    virtual void      Draw(StateManager &manager, SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean menu = GL_FALSE);
     // Menu buttons state change
     void ActiveContinue();
     void ChangeButton(GLboolean up);

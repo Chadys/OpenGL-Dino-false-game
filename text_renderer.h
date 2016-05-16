@@ -11,6 +11,7 @@
 
 #include "texture.h"
 #include "shader.h"
+#include "state_manager.h"
 
 
 /// Holds all state information relevant to a character as loaded using FreeType
@@ -37,7 +38,7 @@ public:
     // Pre-compiles a list of characters from the given font
     void Load(std::string font, GLuint fontSize);
     // Renders a string of text using the precompiled list of characters
-    void RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale = 1.0f, glm::vec3 color = glm::vec3(0));
+    void RenderText(StateManager &manager, std::string text, GLfloat x, GLfloat y, GLfloat scale = 1.0f, glm::vec3 color = glm::vec3(0));
 private:
     // Render state
     GLuint VAO, VBO;

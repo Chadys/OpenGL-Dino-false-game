@@ -9,6 +9,7 @@
 #include "texture.h"
 #include "sprite_renderer.h"
 #include "model.h"
+#include "state_manager.h"
 
 /*------------------------------------INTERFACES-----------------------------------------*/
 class GameObject
@@ -18,7 +19,7 @@ public:
     Texture2D   Tex;	
     // Draw sprite
     GameObject(Texture2D sprite) : Tex(sprite) { }
-    virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view) = 0;
+    virtual void Draw(StateManager &manager, SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view) = 0;
 };
 
 // Container object for holding all state relevant for a single
@@ -59,7 +60,7 @@ public:
     // Constructor(s)
     GameModel(std::string file, std::string name);
     // Draw sprite
-    void Draw(Shader shader, glm::mat4 projection, glm::mat4 view);
+    void Draw(StateManager &manager, Shader shader, glm::mat4 projection, glm::mat4 view);
     // Set model's position correctly :
     // the given side of the model will be localised as to be at pos location if it is facing the orientation side_local
     // Putting the model in its correct orientation for it to work will need to be done elsewhere.
@@ -77,7 +78,7 @@ public:
     // Constructor(s)
     Object3D(glm::vec3 pos, glm::vec3 size, Texture2D sprite, glm::vec3 color = glm::vec3(1.0f));
     // Draw sprite
-    virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    virtual void Draw(StateManager &manager, SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
 };
 
 
@@ -108,7 +109,7 @@ public:
     Object2D(Texture2D sprite, glm::vec2 position, glm::vec2 size);
     Object2D(Texture2D sprite, std::vector<GLuint> N_max, GLfloat size_factor = 1.0f, glm::vec2 position = glm::vec2(0));
     // Draw sprite
-    virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
+    virtual void Draw(StateManager &manager, SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
     void         Update(GLfloat dt);
     void         SetState(State state);
     GLboolean    IsState(State state);
@@ -135,7 +136,7 @@ public:
     // Constructor(s)
     Square(glm::vec2 position, glm::vec2 size, glm::vec3 color1, glm::vec3 color2 = glm::vec3(0), Effect effect = NONE, glm::vec2 velocity = glm::vec2(0), GLboolean circle = GL_FALSE);
     // Draw sprite
-    virtual void Draw(SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean border = GL_FALSE);
+    virtual void Draw(StateManager &manager, SpriteRenderer &renderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean border = GL_FALSE);
     void         Update(GLfloat dt);
 };
 
