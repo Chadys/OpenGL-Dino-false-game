@@ -21,7 +21,7 @@ SpriteRenderer  *RendererSkybox;
 
 
 Game::Game() 
-	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true) {
+	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true), Selected_sprite(GL_FALSE) {
 		this->bezier.target = NOP;
 	}
 
@@ -116,18 +116,21 @@ void Game::Update(GLfloat dt)
 {
     for (Object2D &sprite : Sprites)
         sprite.Update(dt);
-    if(this->bezier.target == CAM){
-    	this->bezier.time_elapsed += dt;
+    if(this->bezier.target == CAM_JUMP){
+    	float dist = sqrt(pow(this->bezier.depart.x-this->bezier.arrivee.x,2)+pow(this->bezier.depart.y-this->bezier.arrivee.y,2)+pow(this->bezier.depart.z-this->bezier.arrivee.z,2));
+    	this->bezier.time_elapsed += (1/dist*500)*dt;
     	this->Cam.Position = Game::Update_Bezier(this->bezier.depart,this->bezier.middle,this->bezier.arrivee,this->bezier.time_elapsed);
     	if (this->bezier.time_elapsed >= 1)
     		this->bezier.target = NOP;
     }
-    // else if(this->bezier.target == MODEL){
-    // 	this-bezier.time_elapsed += dt;
-    // 	 = Game::Update_Bezier(this->bezier.depart,this->bezier.middle,this->bezier.arrivee,this->bezier.time_elapsed);
-	//	if (this->bezier.time_elapsed >= 1)
-	// 		this->bezier.target = NOP;
-    // }
+    if(this->bezier.target == CAM_SLIDE){
+    	this->bezier.time_elapsed += dt;
+    	this->Cam.Position = Game::Update_Bezier(this->bezier.depart,this->bezier.middle,this->bezier.arrivee,this->bezier.time_elapsed);
+    	if (this->bezier.time_elapsed >= 1){
+    		this->bezier.target = NOP;
+    		this->Sprites[Selected_sprite].Position = glm::vec2(this->Width/2-this->Sprites[Selected_sprite].Size.x/2,this->Height/2-this->Sprites[Selected_sprite].Size.y/2+2);
+    	}
+    }
 }
 
 
@@ -153,57 +156,82 @@ void Game::ProcessInput(GLfloat dt)
 
     else if(this->State == GAME_2D){
     	GLboolean move = GL_FALSE;
-    	if (this->bezier.target == CAM){
-    		this->Sprites[0].SetState(JUMP);
+    	if (this->bezier.target == CAM_JUMP){
+    		this->Sprites[Selected_sprite].SetState(JUMP);
     		return;
     	}
-        if(this->Keys[GLFW_KEY_KP_0])
+        if (this->bezier.target == CAM_SLIDE){
+            this->Sprites[Selected_sprite].SetState(IDLE);
+            return;
+        }
+        if(this->Keys[GLFW_KEY_BACKSPACE] && !this->ProcessedKeys[GLFW_KEY_BACKSPACE]){
+        	this->ProcessedKeys[GLFW_KEY_BACKSPACE] = GL_TRUE;
+        	this->SetBezier(this->Sprites[Selected_sprite].ExchangeSprite(this->Sprites[!Selected_sprite], this->Cam.Position));
+        	this->Selected_sprite = !Selected_sprite;
+        } 
+        if(this->Keys[GLFW_KEY_KP_0] && !this->ProcessedKeys[GLFW_KEY_KP_0]){
+        	this->ProcessedKeys[GLFW_KEY_KP_0] = GL_TRUE;
             this->SetBezier(2, 0);
-        if(this->Keys[GLFW_KEY_KP_1])
+        }
+        if(this->Keys[GLFW_KEY_KP_1] && !this->ProcessedKeys[GLFW_KEY_KP_1]){
+        	this->ProcessedKeys[GLFW_KEY_KP_1] = GL_TRUE;
             this->SetBezier(1, 1);
-        if(this->Keys[GLFW_KEY_KP_2])
+        }
+        if(this->Keys[GLFW_KEY_KP_2] && !this->ProcessedKeys[GLFW_KEY_KP_2]){
+        	this->ProcessedKeys[GLFW_KEY_KP_2] = GL_TRUE;
             this->SetBezier(1, -1);
-        if(this->Keys[GLFW_KEY_KP_3])
+        }
+        if(this->Keys[GLFW_KEY_KP_3] && !this->ProcessedKeys[GLFW_KEY_KP_3]){
+        	this->ProcessedKeys[GLFW_KEY_KP_3] = GL_TRUE;
             this->SetBezier(2, -1);
-        if(this->Keys[GLFW_KEY_KP_4])
+        }
+        if(this->Keys[GLFW_KEY_KP_4] && !this->ProcessedKeys[GLFW_KEY_KP_4]){
+        	this->ProcessedKeys[GLFW_KEY_KP_4] = GL_TRUE;
             this->SetBezier(3, -2);
-        if(this->Keys[GLFW_KEY_KP_5])
+        }
+        if(this->Keys[GLFW_KEY_KP_5] && !this->ProcessedKeys[GLFW_KEY_KP_5]){
+        	this->ProcessedKeys[GLFW_KEY_KP_5] = GL_TRUE;
             this->SetBezier(6, -2);
-        if(this->Keys[GLFW_KEY_KP_6])
+        }
+        if(this->Keys[GLFW_KEY_KP_6] && !this->ProcessedKeys[GLFW_KEY_KP_6]){
+        	this->ProcessedKeys[GLFW_KEY_KP_6] = GL_TRUE;
             this->SetBezier(3, -1);
-        if(this->Keys[GLFW_KEY_KP_7])
+        }
+        if(this->Keys[GLFW_KEY_KP_7] && !this->ProcessedKeys[GLFW_KEY_KP_7]){
+        	this->ProcessedKeys[GLFW_KEY_KP_7] = GL_TRUE;
             this->SetBezier(6, -5);
+        }
 
         if(this->Keys[GLFW_KEY_S]){
             this->Cam.ProcessKeyboard(DOWN, dt);
-            this->Sprites[0].SetState(DEAD);
+            this->Sprites[Selected_sprite].SetState(DEAD);
             move = GL_TRUE;
         }
         if(this->Keys[GLFW_KEY_A]){
             this->Cam.ProcessKeyboard(LEFT, dt);
-            this->Sprites[0].Reversed = GL_FALSE;
-            this->Sprites[0].SetState(WALK);
+            this->Sprites[Selected_sprite].Reversed = GL_FALSE;
+            this->Sprites[Selected_sprite].SetState(WALK);
             move = GL_TRUE;
         }
         if(this->Keys[GLFW_KEY_D]){
             this->Cam.ProcessKeyboard(RIGHT, dt);
-            this->Sprites[0].Reversed = GL_TRUE;
-            this->Sprites[0].SetState(WALK);
+            this->Sprites[Selected_sprite].Reversed = GL_TRUE;
+            this->Sprites[Selected_sprite].SetState(WALK);
             move = GL_TRUE;
         }
         if(this->Keys[GLFW_KEY_W]){
             this->Cam.ProcessKeyboard(UP, dt);
-            this->Sprites[0].SetState(JUMP);
+            this->Sprites[Selected_sprite].SetState(JUMP);
             move = GL_TRUE;
         }
 
         if(this->Keys[GLFW_KEY_SPACE])
-            this->Sprites[0].SetState(WHIP);
+            this->Sprites[Selected_sprite].SetState(WHIP);
         if(this->Keys[GLFW_KEY_RIGHT_SHIFT])
-            this->Sprites[1].SetState(BITE);
+            this->Sprites[!Selected_sprite].SetState(BITE);
 
-        if (!move && !this->Sprites[0].IsState(WHIP))
-            this->Sprites[0].SetState(IDLE);
+        if (!move && !this->Sprites[Selected_sprite].IsState(WHIP))
+            this->Sprites[Selected_sprite].SetState(IDLE);
 
         if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
         	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
@@ -278,10 +306,13 @@ void Game::Render()
             // Draw level
             this->Levels[1].Draw(*Renderer, this->Width, this->Height, projection2D, view3D);
             // Draw sprites
-            this->Sprites[0].Draw(*RendererSprite,projection2D);
-            this->Sprites[1].Draw(*RendererSprite,projection2D, view3D);
+            this->Sprites[!Selected_sprite].Draw(*RendererSprite,projection2D, view3D);
+            if(this->bezier.target == CAM_SLIDE)
+            	this->Sprites[Selected_sprite].Draw(*RendererSprite,projection2D, view3D);
+            else
+            	this->Sprites[Selected_sprite].Draw(*RendererSprite,projection2D);
             break;
-        default:
+        default: // 3D
             // Draw models
             this->Models[0].Draw(ResourceManager::GetShader("model"), projection3D, view3D);
             // Draw level
@@ -318,9 +349,18 @@ glm::vec3 Game::Update_Bezier(glm::vec3 depart,glm::vec3 middle,glm::vec3 arrive
 }
 
 void Game::SetBezier(GLint x, GLint y){
-	this->bezier.target = CAM;
+	this->bezier.target = CAM_JUMP;
 	this->bezier.time_elapsed = 0.0f;
 	this->bezier.depart = this->Cam.Position;
 	this->bezier.arrivee = glm::vec3(this->Cam.Position.x+ResourceManager::GetTexture("grass0").Width*((GLfloat)this->Width/1024)*x, this->Cam.Position.y-ResourceManager::GetTexture("grass0").Height*((GLfloat)this->Width/1024)*y, this->Cam.Position.z);
-	this->bezier.middle = glm::vec3(this->bezier.depart.x+(this->bezier.arrivee.x-this->bezier.depart.x)/2, this->bezier.depart.y*0.5-abs(this->bezier.arrivee.y-this->bezier.depart.y)/2, 1.0f);
+	GLfloat h_factor = y < 0 ? -y : 1.0f;
+	this->bezier.middle = glm::vec3(this->bezier.depart.x+(this->bezier.arrivee.x-this->bezier.depart.x)/2, this->bezier.depart.y+(this->bezier.arrivee.y-this->bezier.depart.y)/2-150*((GLfloat)this->Width/1024)*h_factor, 0.0f);
+}
+
+void Game::SetBezier(glm::vec3 new_cam_pos){
+	this->bezier.target = CAM_SLIDE;
+	this->bezier.time_elapsed = 0.0f;
+	this->bezier.depart = this->Cam.Position;
+	this->bezier.arrivee = new_cam_pos;
+	this->bezier.middle = this->bezier.depart+(this->bezier.arrivee-this->bezier.depart)*0.5f;
 }

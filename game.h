@@ -21,7 +21,8 @@ enum GameState {
 
 enum Target {
 	NOP,
-	CAM,
+	CAM_JUMP,
+	CAM_SLIDE,
 	MODEL
 };
 
@@ -30,7 +31,7 @@ struct Bezier {
     glm::vec3 depart;
     glm::vec3 middle;
     glm::vec3 arrivee;
-    GLfloat 	  time_elapsed;
+    GLfloat	  time_elapsed;
     Target	  target;
 };
 
@@ -45,7 +46,6 @@ public:
     GLboolean              Keys[1024];
     GLboolean              ProcessedKeys[1024];
     GLuint                 Width, Height;
-    Bezier				   bezier;
 
     // Constructor/Destructor
     Game();
@@ -67,10 +67,13 @@ private:
     GLuint                 Level;
     std::vector<GameModel> Models;
     std::vector<Object2D>  Sprites;
+    Bezier				   bezier;
+    GLboolean			   Selected_sprite;
     void GoMENU();
     void Go2D();
     void Go3D();
     void SetBezier(GLint x, GLint y);
+    void SetBezier(glm::vec3 new_cam_pos);
 };
 
 #endif

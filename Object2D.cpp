@@ -60,3 +60,9 @@ GLboolean Object2D::IsState(State state){
         return GL_TRUE;
     return GL_FALSE;
 }
+
+glm::vec3 Object2D::ExchangeSprite(const Object2D &sprite2, const glm::vec3 &cam_pos){
+	glm::vec3 new_cam_pos = glm::vec3(sprite2.Position-this->Position, 0.0f);
+	this->Position += glm::vec2(cam_pos.x,cam_pos.y);
+	return new_cam_pos;
+}

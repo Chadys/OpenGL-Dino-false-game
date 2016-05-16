@@ -112,6 +112,7 @@ public:
     void         Update(GLfloat dt);
     void         SetState(State state);
     GLboolean    IsState(State state);
+    glm::vec3 	 ExchangeSprite(const Object2D &sprite2, const glm::vec3 &cam_pos);
 private:
     // column and line in the sprite sheet of the current displayed image
     State               Action; //line
