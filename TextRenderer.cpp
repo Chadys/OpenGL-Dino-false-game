@@ -1,12 +1,5 @@
-
-
 /*******************************************************************
-** This code is part of Breakout.
-**
-** Breakout is free software: you can redistribute it and/or modify
-** it under the terms of the CC BY 4.0 license as published by
-** Creative Commons, either version 4 of the License, or (at your
-** option) any later version.
+** Taken and adapted from learnopengl.com (part of a Breakout game) 
 ******************************************************************/
 #include <iostream>
 
@@ -121,8 +114,8 @@ void TextRenderer::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat sc
     {
         Character ch = Characters[*c];
 
-        GLfloat xpos = x + (ch.Bearing.x - text_size.x) * scale;
-        GLfloat ypos = y + ((this->Characters['H'].Bearing.y - ch.Bearing.y) - text_size.y) * scale;
+        GLfloat xpos = x + ch.Bearing.x * scale - text_size.x;
+        GLfloat ypos = y + (this->Characters['H'].Bearing.y - ch.Bearing.y) * scale - text_size.y;
 
         GLfloat w = ch.Size.x * scale;
         GLfloat h = ch.Size.y * scale;

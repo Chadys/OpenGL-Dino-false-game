@@ -1,12 +1,5 @@
-
-
 /*******************************************************************
-** This code is part of Breakout.
-**
-** Breakout is free software: you can redistribute it and/or modify
-** it under the terms of the CC BY 4.0 license as published by
-** Creative Commons, either version 4 of the License, or (at your
-** option) any later version.
+** Taken and adapted from learnopengl.com (part of a Breakout game) 
 ******************************************************************/
 #include "game_level.h"
 
@@ -89,12 +82,12 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLui
          {
              GLuint type_block = rand() % 6;
              Texture2D tex = ResourceManager::GetTexture("grass"+to_string(type_block));
-             //the size of the texture is ok for a 800x600 screen, adapt it
-             glm::vec2 size = glm::vec2(tex.Width,tex.Height)*((GLfloat)width/800);
+             //the size of the texture is ok for a 1024x768 screen, adapt it
+             glm::vec2 size = glm::vec2(tex.Width,tex.Height)*((GLfloat)width/1024);
 
              GLfloat x = (width/2-size.x/2) + i*size.x;
 
-             GLfloat dino_height = ResourceManager::GetTexture("dino1").Height/8*((GLfloat)width/800);
+             GLfloat dino_height = ResourceManager::GetTexture("dino1").Height/8*((GLfloat)width/1024);
              GLfloat y = (height/2-size.y/2)-(((boxData[0][i]%10)-5)*size.y)+dino_height+(size.y-dino_height)/2;
 
              this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y), size)));
@@ -125,7 +118,7 @@ void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLui
 
 //     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y + pas_y), glm::vec2(b_width, b_height))));
 //     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y + pas_y*3), glm::vec2(b_width, b_height))));
-//     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm::vec2(x,y + pas_y*5), glm::vec2(b_width, b_height))));
+//     this->Obj.push_back(std::unique_ptr<GameObject>(new Object2D(tex, glm:"zéaq'":vec2(x,y + pas_y*5), glm::vec2(b_width, b_height))));
 // }
 void GameLevel::initMenu(GLfloat width, GLfloat height)
 {
@@ -144,13 +137,14 @@ void GameLevel::initMenu(GLfloat width, GLfloat height)
     this->Texts.push_back(Text("Nouvelle Partie", glm::vec2(x,y + pas_y), size_factor));
     
     this->Squares.push_back(Square(glm::vec2(b_x,b_y + pas_y*3), glm::vec2(b_width, b_height), glm::vec3(0.6f,0.6f,0.6f), glm::vec3(0.2f,0.2f,0.2f), V_GRAD));
-    this->Texts.push_back(Text("Continuer", glm::vec2(x,y + pas_y*3), size_factor, glm::vec3(0.2)));
+    this->Texts.push_back(Text("Continuer", glm::vec2(x,y + pas_y*3), size_factor, glm::vec3(0.2f)));
 
     this->Squares.push_back(Square(glm::vec2(b_x,b_y + pas_y*5), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
     this->Texts.push_back(Text("Quitter", glm::vec2(x,y + pas_y*5), size_factor));
 
     this->T_renderer.reset(new TextRenderer(width, height));
     this->T_renderer->Load("fonts/Futura_Bold_Font/a_FuturaOrto-Bold_2258.ttf",50);
+    this->Select(0);
 }
 
 
@@ -177,4 +171,63 @@ std::vector<std::vector<GLint>> GameLevel::load(const GLchar *file)
         }
     }
     return boxData;
+}
+
+//MENU ONLY : Active Continue button
+void GameLevel::ActiveContinue(){
+	this->Squares[1].Color1 = glm::vec3(0.0f,0.6f,1.0f);
+	this->Squares[1].Color2 = glm::vec3(0.0f,0.1f,0.2f);
+	this->Texts[1].Color = glm::vec3(0);
+}
+
+//MENU ONLY : Change the selected button depending on the arrow pressed and the previous selected button
+void GameLevel::ChangeButton(GLboolean up){
+	//First button selected
+	if (this->Texts[0].Size_factor > this->Texts[1].Size_factor){
+		if(up)
+			return;
+		this->Deselect(0);
+		if(this->Texts[1].Color.x == 0.2f) // button continue deactivated
+			this->Select(2);
+		else
+			this->Select(1);
+	}
+	//Second button selected
+	else if (this->Texts[1].Size_factor > this->Texts[2].Size_factor){
+		this->Deselect(1);
+		if(up)
+			this->Select(0);
+		else
+			this->Select(2);
+	}
+	//Last button selected
+	else{
+		if(!up)
+			return;
+		this->Deselect(2);
+		if(this->Texts[1].Color.x == 0.2f) // button continue deactivated
+			this->Select(0);
+		else
+			this->Select(1);
+	}
+}
+
+//MENU ONLY : select a button
+void GameLevel::Select(GLuint n){
+	glm::vec2 new_size = this->Squares[n].Size * 1.2f;
+	this->Squares[n].Position -= (new_size-this->Squares[n].Size)*0.5f;
+	this->Squares[n].Size = new_size;
+	std::swap(this->Squares[n].Color1, this->Squares[n].Color2);
+	this->Texts[n].Size_factor *= 1.2f;
+	this->Texts[n].Color = glm::vec3(1);
+}
+
+//MENU ONLY : deselect a button
+void GameLevel::Deselect(GLuint n){
+	glm::vec2 new_size = this->Squares[n].Size / 1.2f;
+	this->Squares[n].Position += (this->Squares[n].Size-new_size)*0.5f;
+	this->Squares[n].Size = new_size;
+	std::swap(this->Squares[n].Color1, this->Squares[n].Color2);
+	this->Texts[n].Size_factor /= 1.2f;
+	this->Texts[n].Color = glm::vec3(0);
 }

@@ -1,12 +1,5 @@
-
-
 /*******************************************************************
-** This code is part of Breakout.
-**
-** Breakout is free software: you can redistribute it and/or modify
-** it under the terms of the CC BY 4.0 license as published by
-** Creative Commons, either version 4 of the License, or (at your
-** option) any later version.
+** Taken and adapted from learnopengl.com (part of a Breakout game) 
 ******************************************************************/
 #ifndef GAME_H
 #define GAME_H
@@ -26,6 +19,21 @@ enum GameState {
     GAME_3D
 };
 
+enum Target {
+	NOP,
+	CAM,
+	MODEL
+};
+
+// Structure used for move using a Bezier's curve
+struct Bezier {
+    glm::vec3 depart;
+    glm::vec3 middle;
+    glm::vec3 arrivee;
+    GLfloat 	  time_elapsed;
+    Target	  target;
+};
+
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
 // easy access to each of the components and manageability.
@@ -35,7 +43,9 @@ public:
     // Game state
     GameState              State;	
     GLboolean              Keys[1024];
+    GLboolean              ProcessedKeys[1024];
     GLuint                 Width, Height;
+    Bezier				   bezier;
 
     // Constructor/Destructor
     Game();
@@ -48,8 +58,7 @@ public:
     void ProcessMouseScroll(GLdouble yoffset);
     void Update(GLfloat dt);
     void Render();
-    void Go2D();
-    void Go3D();
+    static glm::vec3 Update_Bezier(glm::vec3 depart,glm::vec3 middle,glm::vec3 arrivee,float t);
 private:
     Camera                 Cam;
     GLfloat                lastX, lastY;
@@ -58,6 +67,10 @@ private:
     GLuint                 Level;
     std::vector<GameModel> Models;
     std::vector<Object2D>  Sprites;
+    void GoMENU();
+    void Go2D();
+    void Go3D();
+    void SetBezier(GLint x, GLint y);
 };
 
 #endif

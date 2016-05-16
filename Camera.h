@@ -1,3 +1,6 @@
+/*******************************************************************
+** Taken and adapted from learnopengl.com (camera tutorial) 
+******************************************************************/
 #pragma once
 
 // Std. Includes
@@ -71,15 +74,15 @@ public:
         return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
     }
     // Returns the view matrix for a 2D display = only the position in x and y can change
-    glm::mat4 GetViewMatrix2D()
-    {
-        glm::vec3 pos, front, right, up;
-        pos   = glm::vec3(this->Position.x,this->Position.y,0.0f);
-        front = glm::vec3(0.0f, 0.0f, -1.0f);
-        right = glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-        up    = glm::normalize(glm::cross(right, front));
-        return glm::lookAt(pos, pos + front, up);
-    }
+    // glm::mat4 GetViewMatrix2D()
+    // {
+    //     glm::vec3 pos, front, right, up;
+    //     pos   = glm::vec3(this->Position.x,this->Position.y,0.0f);
+    //     front = glm::vec3(0.0f, 0.0f, -1.0f);
+    //     right = glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    //     up    = glm::normalize(glm::cross(right, front));
+    //     return glm::lookAt(pos, pos + front, up);
+    // }
 
 
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

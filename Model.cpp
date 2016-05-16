@@ -1,3 +1,6 @@
+/*******************************************************************
+** Taken and adapted from learnopengl.com (loading model tutorial) 
+******************************************************************/
 // Std. Includes
 #include <string>
 #include <fstream>

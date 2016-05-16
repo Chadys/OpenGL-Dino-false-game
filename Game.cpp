@@ -1,12 +1,5 @@
-
-
 /*******************************************************************
-** This code is part of Breakout.
-**
-** Breakout is free software: you can redistribute it and/or modify
-** it under the terms of the CC BY 4.0 license as published by
-** Creative Commons, either version 4 of the License, or (at your
-** option) any later version.
+** Taken and adapted from learnopengl.com (part of a Breakout game) 
 ******************************************************************/
 #include "game.h"
 #include "resource_manager.h"
@@ -28,10 +21,9 @@ SpriteRenderer  *RendererSkybox;
 
 
 Game::Game() 
-	: State(GAME_MENU), Keys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true)
-{ 
-    this->Cam.MovementSpeed = 100.0f;
-}
+	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true) {
+		this->bezier.target = NOP;
+	}
 
 Game::~Game()
 {
@@ -43,6 +35,9 @@ Game::~Game()
 
 void Game::Init()
 {
+	//Adapt camera speed for 2D and depending on the screen size (it was originalled choosen for a 800x600 screen)
+    this->Cam.MovementSpeed = 100.0f*this->Width/800;
+
     /* initialize random seed: */
     srand (time(NULL));
 
@@ -104,11 +99,11 @@ void Game::Init()
     n_max.push_back(1);
     n_max.push_back(1);
     n_max.push_back(0);
-    Object2D dino1 = Object2D(ResourceManager::GetTexture("dino1"), n_max, (GLfloat)this->Width/800);
+    Object2D dino1 = Object2D(ResourceManager::GetTexture("dino1"), n_max, (GLfloat)this->Width/1024);
     dino1.Position = glm::vec2(this->Width/2-dino1.Size.x/2,this->Height/2-dino1.Size.y/2+2); // the +2 is here because the dinosaur's paw aren't at the same height
     dino1.Reversed = GL_TRUE;
     this->Sprites.push_back(dino1);
-    Object2D dino2 = Object2D(ResourceManager::GetTexture("dino2"), n_max, (GLfloat)this->Width/800, glm::vec2(dino1.Position.x + ResourceManager::GetTexture("grass0").Width*6*((GLfloat)this->Width/800), dino1.Position.y));
+    Object2D dino2 = Object2D(ResourceManager::GetTexture("dino2"), n_max, (GLfloat)this->Width/1024, glm::vec2(dino1.Position.x + ResourceManager::GetTexture("grass0").Width*41*((GLfloat)this->Width/1024), dino1.Position.y - ResourceManager::GetTexture("grass0").Height*2*((GLfloat)this->Width/1024)));
     this->Sprites.push_back(dino2);
     // Set render-specific controls
     Renderer3d = new SpriteRenderer(shader, GL_FALSE);
@@ -121,12 +116,23 @@ void Game::Update(GLfloat dt)
 {
     for (Object2D &sprite : Sprites)
         sprite.Update(dt);
+    if(this->bezier.target == CAM){
+    	this->bezier.time_elapsed += dt;
+    	this->Cam.Position = Game::Update_Bezier(this->bezier.depart,this->bezier.middle,this->bezier.arrivee,this->bezier.time_elapsed);
+    	if (this->bezier.time_elapsed >= 1)
+    		this->bezier.target = NOP;
+    }
+    // else if(this->bezier.target == MODEL){
+    // 	this-bezier.time_elapsed += dt;
+    // 	 = Game::Update_Bezier(this->bezier.depart,this->bezier.middle,this->bezier.arrivee,this->bezier.time_elapsed);
+	//	if (this->bezier.time_elapsed >= 1)
+	// 		this->bezier.target = NOP;
+    // }
 }
 
 
 void Game::ProcessInput(GLfloat dt)
 {
-    GLboolean move = GL_FALSE;
 
     // Camera controls
     if(this->State == GAME_3D){
@@ -139,10 +145,35 @@ void Game::ProcessInput(GLfloat dt)
         if(this->Keys[GLFW_KEY_W])
             this->Cam.ProcessKeyboard(FORWARD, dt);
 
-        if(this->Keys[GLFW_KEY_ENTER])
-            this->Go2D();
+        if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
+        	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
+            this->GoMENU();
+        }
     }
-    else{
+
+    else if(this->State == GAME_2D){
+    	GLboolean move = GL_FALSE;
+    	if (this->bezier.target == CAM){
+    		this->Sprites[0].SetState(JUMP);
+    		return;
+    	}
+        if(this->Keys[GLFW_KEY_KP_0])
+            this->SetBezier(2, 0);
+        if(this->Keys[GLFW_KEY_KP_1])
+            this->SetBezier(1, 1);
+        if(this->Keys[GLFW_KEY_KP_2])
+            this->SetBezier(1, -1);
+        if(this->Keys[GLFW_KEY_KP_3])
+            this->SetBezier(2, -1);
+        if(this->Keys[GLFW_KEY_KP_4])
+            this->SetBezier(3, -2);
+        if(this->Keys[GLFW_KEY_KP_5])
+            this->SetBezier(6, -2);
+        if(this->Keys[GLFW_KEY_KP_6])
+            this->SetBezier(3, -1);
+        if(this->Keys[GLFW_KEY_KP_7])
+            this->SetBezier(6, -5);
+
         if(this->Keys[GLFW_KEY_S]){
             this->Cam.ProcessKeyboard(DOWN, dt);
             this->Sprites[0].SetState(DEAD);
@@ -174,33 +205,56 @@ void Game::ProcessInput(GLfloat dt)
         if (!move && !this->Sprites[0].IsState(WHIP))
             this->Sprites[0].SetState(IDLE);
 
-        if(this->Keys[GLFW_KEY_ENTER])
+        if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
+        	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
             this->Go3D();
+        }
+    }
+
+    // Menu
+    else{
+        if(this->Keys[GLFW_KEY_UP] && !this->ProcessedKeys[GLFW_KEY_UP]){
+        	this->ProcessedKeys[GLFW_KEY_UP] = GL_TRUE;
+        	this->Levels[0].ChangeButton(GL_TRUE);
+        }
+        if(this->Keys[GLFW_KEY_DOWN] && !this->ProcessedKeys[GLFW_KEY_DOWN]){
+        	this->ProcessedKeys[GLFW_KEY_DOWN] = GL_TRUE;
+        	this->Levels[0].ChangeButton(GL_FALSE);
+        }
+
+        if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
+        	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
+            this->Levels[0].ActiveContinue();
+            this->Go2D();
+        }
     }
 }
 
 void Game::ProcessMouseMovement(GLdouble xpos, GLdouble ypos)
 {
-    if(this->firstMouse)
-    {
-        this->lastX = xpos;
-        this->lastY = ypos;
-        this->firstMouse = false;
-    }
-
-    GLfloat xoffset = xpos - this->lastX;
-    GLfloat yoffset = this->lastY - ypos;  // Reversed since y-coordinates go from bottom to left
-    
-    this->lastX = xpos;
-    this->lastY = ypos;
-
-    this->Cam.ProcessMouseMovement(xoffset, yoffset);
+	if(this->State == GAME_3D){
+	    if(this->firstMouse)
+	    {
+	        this->lastX = xpos;
+	        this->lastY = ypos;
+	        this->firstMouse = false;
+	    }
+	
+	    GLfloat xoffset = xpos - this->lastX;
+	    GLfloat yoffset = this->lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+	    
+	    this->lastX = xpos;
+	    this->lastY = ypos;
+	
+	    this->Cam.ProcessMouseMovement(xoffset, yoffset);
+	}
 }   
 
 
 void Game::ProcessMouseScroll(GLdouble yoffset)
 {
-    this->Cam.ProcessMouseScroll(yoffset);
+	if(this->State == GAME_3D)
+    	this->Cam.ProcessMouseScroll(yoffset);
 }
 
 
@@ -209,7 +263,7 @@ void Game::Render()
 	// Create camera transformation
     glm::mat4 view3D, view2D, projection3D, projection2D;
     view3D = this->Cam.GetViewMatrix();
-    view2D = this->Cam.GetViewMatrix2D();
+    // view2D = this->Cam.GetViewMatrix2D();
     projection3D = glm::perspective(glm::radians(this->Cam.Zoom), static_cast<GLfloat>(this->Width)/static_cast<GLfloat>(this->Height), 0.1f, 1000.0f);
     projection2D = glm::ortho(0.0f, static_cast<GLfloat>(this->Width), static_cast<GLfloat>(this->Height), 0.0f, -1.0f, 1.0f);
 
@@ -222,10 +276,10 @@ void Game::Render()
             break;
         case(GAME_2D):
             // Draw level
-            this->Levels[1].Draw(*Renderer, this->Width, this->Height, projection2D, view2D);
+            this->Levels[1].Draw(*Renderer, this->Width, this->Height, projection2D, view3D);
             // Draw sprites
             this->Sprites[0].Draw(*RendererSprite,projection2D);
-            this->Sprites[1].Draw(*RendererSprite,projection2D, view2D);
+            this->Sprites[1].Draw(*RendererSprite,projection2D, view3D);
             break;
         default:
             // Draw models
@@ -235,12 +289,15 @@ void Game::Render()
     }
 }
 
-void Game::Go2D(){
-    this->State = GAME_2D;
+void Game::GoMENU(){
+    this->State = GAME_MENU;
     this->Cam = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE); 
-    this->Cam.MovementSpeed = 100.0f;
+    this->Cam.MovementSpeed = 100.0f*this->Width/800;
+}
+void Game::Go2D(){
+    this->State = GAME_2D;
 }
 void Game::Go3D(){
     this->State = GAME_3D;
@@ -250,24 +307,20 @@ void Game::Go3D(){
     this->Cam.MovementSpeed = SPEED;
 }
 
+glm::vec3 Game::Update_Bezier(glm::vec3 depart,glm::vec3 middle,glm::vec3 arrivee, GLfloat t){
+	glm::vec3 new_vec;
+	if (t > 1)
+		t = 1;
+   	new_vec[0]=(1-t)*(1-t)*depart[0]+2*t*(1-t)*middle[0]+t*t*arrivee[0];
+   	new_vec[1]=(1-t)*(1-t)*depart[1]+2*t*(1-t)*middle[1]+t*t*arrivee[1];
+   	new_vec[2]=(1-t)*(1-t)*depart[2]+2*t*(1-t)*middle[2]+t*t*arrivee[2];
+   	return new_vec;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-// vec3 beziertest(vec3 depart,vec3 middle,vec3 arrivee,float t){
-//     vec3 bob;
-//     bob[0]=(1-t)*(1-t)*depart[0]+2*t*(1-t)*middle[0]+t*t*arrivee[0];
-//     bob[1]=(1-t)*(1-t)*depart[1]+2*t*(1-t)*middle[1]+t*t*arrivee[1];
-//     bob[2]=(1-t)*(1-t)*depart[2]+2*t*(1-t)*middle[2]+t*t*arrivee[2];
-//     return bob;
-// }
+void Game::SetBezier(GLint x, GLint y){
+	this->bezier.target = CAM;
+	this->bezier.time_elapsed = 0.0f;
+	this->bezier.depart = this->Cam.Position;
+	this->bezier.arrivee = glm::vec3(this->Cam.Position.x+ResourceManager::GetTexture("grass0").Width*((GLfloat)this->Width/1024)*x, this->Cam.Position.y-ResourceManager::GetTexture("grass0").Height*((GLfloat)this->Width/1024)*y, this->Cam.Position.z);
+	this->bezier.middle = glm::vec3(this->bezier.depart.x+(this->bezier.arrivee.x-this->bezier.depart.x)/2, this->bezier.depart.y*0.5-abs(this->bezier.arrivee.y-this->bezier.depart.y)/2, 1.0f);
+}

@@ -1,5 +1,3 @@
-
-
 // Std. Includes
 #include <string>
 
@@ -119,9 +117,11 @@ void key_callback(GLFWwindow* window, int key, __attribute__((unused)) int scanc
     if (key >= 0 && key < 1024)
     {
         if(action == GLFW_PRESS)
-            game.Keys[key] = true;
-        else if(action == GLFW_RELEASE)
-            game.Keys[key] = false;  
+            game.Keys[key] = GL_TRUE;
+        else if(action == GLFW_RELEASE){
+            game.Keys[key] = GL_FALSE; 
+            game.ProcessedKeys[key] = GL_FALSE; 
+        }
     }
 }
 

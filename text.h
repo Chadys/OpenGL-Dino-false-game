@@ -9,9 +9,9 @@ class Text
 public:
     std::string text;
     glm::vec2 Position;
-    GLfloat Size;
+    GLfloat Size_factor;
     glm::vec3 Color;
 
-    Text(std::string t, glm::vec2 position, GLfloat size = 1.0f, glm::vec3 color = glm::vec3(0));
+    Text(std::string t, glm::vec2 position, GLfloat size_factor = 1.0f, glm::vec3 color = glm::vec3(0));
     virtual void      Draw(TextRenderer &renderer);
 };

@@ -1,12 +1,5 @@
-
-
 /*******************************************************************
-** This code is part of Breakout.
-**
-** Breakout is free software: you can redistribute it and/or modify
-** it under the terms of the CC BY 4.0 license as published by
-** Creative Commons, either version 4 of the License, or (at your
-** option) any later version.
+** Taken and adapted from learnopengl.com (part of a Breakout game) 
 ******************************************************************/
 #ifndef GAMELEVEL_H
 #define GAMELEVEL_H
@@ -45,12 +38,17 @@ public:
     // Render level
     virtual void      Draw(SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
     virtual void      Draw(SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean menu = GL_FALSE);
+    // Menu buttons state change
+    void ActiveContinue();
+    void ChangeButton(GLboolean up);
 private:
     // Initialize level from tile data
     std::vector<std::vector<GLint>>      load(const GLchar *file);
     void                                 init(std::vector<std::vector<GLint>> tileData);
     void                                 init(std::vector<std::vector<GLint>> tileData, GLuint width, GLuint height);
     void                                 initMenu(GLfloat width, GLfloat height);
+    void 								 Select(GLuint n);
+    void 								 Deselect(GLuint n);
 };
 
 #endif
