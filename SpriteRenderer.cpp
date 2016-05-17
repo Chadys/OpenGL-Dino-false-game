@@ -4,14 +4,17 @@
 #include "sprite_renderer.h"
 
 
-SpriteRenderer::SpriteRenderer(const Shader &shader, GLboolean isskybox)
+SpriteRenderer::SpriteRenderer(const Shader &shader)
 {
     this->shader = shader;
-    if (!isskybox)
-        this->initRenderData();
-    else
-        this->initSkyboxRenderData();
+    this->initRenderData();
 }
+SpriteRenderer::SpriteRenderer(const Shader &shader, std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>> cubes_carac)
+{
+    this->shader = shader;
+    this->initRenderData(cubes_carac);
+}
+
 SpriteRenderer::SpriteRenderer(const Shader &shader, GLfloat tex_width, GLfloat tex_height)
 {
     this->shader = shader;
@@ -50,6 +53,26 @@ void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::
 
     glBindVertexArray(this->quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    this->shader.SetInteger("is3D", GL_FALSE);
+}
+
+// INSTANCED TEXTURED CUBE
+void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, GLuint amount, glm::mat4 projection, glm::mat4 view)
+{
+    // Prepare transformations
+    manager.Active(this->shader);
+
+    this->shader.SetMatrix4("view", view);
+    this->shader.SetMatrix4("projection", projection);
+
+    this->shader.SetInteger("is3D", GL_TRUE);
+
+    glActiveTexture(GL_TEXTURE0);
+    manager.ActiveTex2D(texture);
+
+    glBindVertexArray(this->quadVAO);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, amount);
     glBindVertexArray(0);
     this->shader.SetInteger("is3D", GL_FALSE);
 }
@@ -134,16 +157,16 @@ void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::
 }
 
 // FENCE CUBE
-void SpriteRenderer::initRenderData()
+void SpriteRenderer::initRenderData(std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>>cubes_carac)
 {
     // Configure VAO/VBO
-    GLuint VBO;
+    GLuint VBO[3];
 
     glGenVertexArrays(1, &this->quadVAO);
-    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &VBO[0]);
 
     glBindVertexArray(this->quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 
     GLfloat vertices3d[] = {
         //FOND
@@ -203,12 +226,48 @@ void SpriteRenderer::initRenderData()
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 
+    // All positions for instanced drawing
+    glGenBuffers(1, &VBO[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+
+    glm::mat4 models[cubes_carac.first.size()];
+    for(GLuint i = 0; i < cubes_carac.first.size(); i++){
+        models[i] = glm::translate(glm::mat4(), cubes_carac.first[i]);
+    }
+
+    glBufferData(GL_ARRAY_BUFFER, cubes_carac.first.size() * sizeof(glm::mat4), &models[0], GL_STATIC_DRAW);
+    
+    // Set attribute pointers for matrix (4 times vec4)
+    glEnableVertexAttribArray(3); 
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)0);
+    glEnableVertexAttribArray(4); 
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4)));
+    glEnableVertexAttribArray(5); 
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(2 * sizeof(glm::vec4)));
+    glEnableVertexAttribArray(6); 
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(3 * sizeof(glm::vec4)));
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    glVertexAttribDivisor(6, 1);
+
+    // All colors for instanced drawing
+    glGenBuffers(1, &VBO[2]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+
+    glBufferData(GL_ARRAY_BUFFER, cubes_carac.second.size() * sizeof(glm::vec3), &cubes_carac.second[0], GL_STATIC_DRAW);
+    
+    // Set attribute pointers for matrix (4 times vec4)
+    glEnableVertexAttribArray(7); 
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
+    glVertexAttribDivisor(7, 1);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
 // SKYBOX
-void SpriteRenderer::initSkyboxRenderData()
+void SpriteRenderer::initRenderData()
 {
     // Configure VAO/VBO
     GLuint VBO;

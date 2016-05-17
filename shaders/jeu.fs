@@ -1,5 +1,6 @@
 #version 330 core
 in vec2 TexCoord;
+in vec4 InstanceColor;
 
 out vec4 fragcolor;
 
@@ -30,7 +31,7 @@ void main()
 	vec4 color;
 	// 3D object, simply apply texture
 	if(is3D)
-	    color = vec4(spriteColor, spriteAlpha)*texture(sprite, TexCoord);
+	    color = InstanceColor*texture(sprite, TexCoord);
 	else
 		// 2D sprite, obtain correct location in sprite sheet
 		if(effect<0){

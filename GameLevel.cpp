@@ -5,18 +5,25 @@
 
 #include <fstream>
 #include <sstream>
-#include <cstdlib>     /* srand, rand */
 #include <string>
+
+#define RandRange(max, min) (std::uniform_int_distribution<>((min), (max))(gen))
+#define fRandRange(max, min) ((GLfloat)std::uniform_real_distribution<>((min), (max))(gen))
+
+//Static init
+std::random_device  GameLevel::rd;
+std::mt19937		GameLevel::gen(rd());
 
 
 GameLevel::GameLevel(std::unique_ptr<Tex> &bg) 
     : Bg(std::move(bg)) { }
 
-void GameLevel::Load(const GLchar *file)
+std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>> GameLevel::Load(const GLchar *file)
 {
     std::vector<std::vector<GLint>> boxData = this->load(file);
     if (boxData.size() > 0)
-        this->init(boxData);
+        return this->init(boxData);
+    return std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>>();
 }
 
 void GameLevel::Load(const GLchar *file, GLuint width, GLuint height)
@@ -50,8 +57,7 @@ void GameLevel::Draw(StateManager &manager, SpriteRenderer &renderer, SpriteRend
 {
     for (Text &text : this->Texts)
         text.Draw(manager,*this->T_renderer);
-    for (std::unique_ptr<GameObject> &box : this->Obj)
-        box->Draw(manager,renderer, projection, view);
+    renderer.DrawSprite(manager, this->Obj[0]->Tex, this->Obj.size(), projection, view);
     bgrenderer.DrawSprite(manager, *this->Bg, projection, view);
 }
 
@@ -66,25 +72,52 @@ void GameLevel::Draw(StateManager &manager, SpriteRenderer &renderer, GLuint wid
         text.Draw(manager,*this->T_renderer);
 }
 
-void GameLevel::init(std::vector<std::vector<GLint>> boxData)
+std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>> GameLevel::init(std::vector<std::vector<GLint>> boxData)
 {
     // Calculate dimensions
     GLuint height = boxData.size();
     GLuint width = boxData[0].size(); // Note we can index vector at [0] since this function is only called if height > 0
+    std::vector<glm::vec3> v, c; // will contain all the cube positions and colors for instanced rendering
+    GLfloat size(1);
+    GLint min = boxData[0][0], max = min;
+
     // Initialize level boxs based on boxData
     for (GLuint y = 0; y < height; ++y)
     {
         for (GLuint x = 0; x < width; ++x)
         {
             // Check block type from level data (2D level array)
-            if (boxData[y][x] > 0 && boxData[y][x] < 10) // Red Block
+            if (boxData[y][x] > 0 && boxData[y][x] < 10) // Red Blocks
             {
-                GLfloat size(1);
                 glm::vec3 pos(x*size,(boxData[y][x]-5)*(size/2),-(y*size));
-                this->Obj.push_back(std::unique_ptr<GameObject>(new Object3D(pos, glm::vec3(size), ResourceManager::GetTexture("fence"), glm::vec3(1.0f, 0.0f, 0.0f))));
+    			this->Obj.push_back(std::unique_ptr<GameObject>(new Object3D(pos, glm::vec3(size), ResourceManager::GetTexture("fence"), glm::vec3(1.0f, 0.0f, 0.0f))));
+                v.push_back(pos);
+                c.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
+                if (boxData[y][x] > max)
+                	max = boxData[y][x];
+                if (boxData[y][x] < min)
+                	min = boxData[y][x];
             }
         }
     }
+    // Add random boxes
+    glm::vec3 rainbow[] = {
+    	glm::vec3(1.0f,0.0f,0.0f), //RED
+    	glm::vec3(1.0f,0.5f,0.0f), //ORANGE
+    	glm::vec3(1.0f,1.0f,0.0f), //YELLOW
+    	glm::vec3(0.0f,1.0f,0.0f), //GREEN
+    	glm::vec3(0.0f,1.0f,1.0f), //CYAN
+    	glm::vec3(0.0f,0.0f,1.0f), //BLUE
+    	glm::vec3(0.5f,0.0f,1.0f) //VIOLET
+    };
+    for (GLuint i = 0; i < 10000; ++i){
+        glm::vec3 pos(RandRange(1000, -1000)*size,(RandRange(max,min)-5)*(size/2),RandRange(1000, -1000)*size);
+        glm::vec3 color(rainbow[RandRange(6,0)]);
+    	this->Obj.push_back(std::unique_ptr<GameObject>(new Object3D(pos, glm::vec3(size), ResourceManager::GetTexture("fence"), color)));
+        v.push_back(pos);
+        c.push_back(color);
+    }
+    return std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>>(v,c);
 }
 
 void GameLevel::init(std::vector<std::vector<GLint>> boxData, GLuint width, GLuint height)
@@ -250,33 +283,33 @@ void GameLevel::Deselect(GLuint n){
 	this->Texts[n].Color = glm::vec3(0);
 }
 
-void GameLevel::AddCircles(GLuint width, GLuint height, glm::vec2 cam_pos){
+void GameLevel::AddCircles(GLint width, GLint height, glm::vec2 cam_pos){
 	glm::vec2 pos, size, velocity;
 	glm::vec3 color;
 	GLfloat screen_factor = width/1920;
 	
-	for (GLuint i = 0 ; i < 50 ; i++){
-		for (GLuint j = 0 ; j < 4 ; j++){
+	for (GLuint i = 0 ; i < 4 ; i++){
+		for (GLuint j = 0 ; j < 50 ; j++){
+			size = glm::vec2(fRandRange(150, 30));
 			switch (i){
 				case 0 : //create circles to the left
-					pos.x = rand() %-50 -200;
-					pos.y = rand() %(100+height) -100;
+					pos.x = fRandRange(-size.x, -(size.x+300));
+					pos.y = fRandRange(-pos.x+height, pos.x);
 					break;
 				case 1 : //create circles to the right
-					pos.x = rand() %(width+200) + width+50;
-					pos.y = rand() %(100+height) -100;
+					pos.x = fRandRange(width+300, width);
+					pos.y = fRandRange(pos.x+height, -pos.x);
 					break;
 				case 2 : //create circles up
-					pos.x = rand() %(100+width) -100;
-					pos.y = rand() %-50 -200;
+					pos.y = fRandRange(-size.y, -300-size.y);
+					pos.x = fRandRange(-pos.y+width, pos.y);
 					break;
 				default : //create circles down
-					pos.x = rand() %(100+width) -100;
-					pos.y = rand() %(200+height) + height+50;
+					pos.y = fRandRange(300+height, height);
+					pos.x = fRandRange(pos.y+width, -pos.y);
 			}
-			size = glm::vec2(rand() %150 +30);
 			color = glm::vec3((GLfloat) rand() / RAND_MAX, (GLfloat) rand() / RAND_MAX, (GLfloat) rand() / RAND_MAX);
-			velocity = glm::normalize(glm::vec2(width/2, height/2) - pos) * (GLfloat)(rand()%200 +125);
+			velocity = glm::normalize(glm::vec2(width/2, height/2) - pos) * fRandRange(500, 200);
 
 			this->Squares.push_back(Square((pos+cam_pos)*screen_factor, size*screen_factor, color, glm::vec3(1), RADIAL_GRAD, velocity*screen_factor, GL_TRUE));
 		}

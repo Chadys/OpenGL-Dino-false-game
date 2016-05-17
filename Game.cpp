@@ -8,7 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
-#include <cstdlib>     /* srand, rand */
 #include <ctime> 
 #include <memory>
 
@@ -38,9 +37,6 @@ void Game::Init()
 {
 	//Adapt camera speed for 2D and depending on the screen size (it was originalled choosen for a 800x600 screen)
     this->Cam.MovementSpeed = 100.0f*this->Width/800;
-
-    /* initialize random seed: */
-    srand (time(NULL));
 
     // Load shaders
     Shader shader = ResourceManager::LoadShader("shaders/jeu.vs", "shaders/jeu.fs", nullptr, "jeu");
@@ -104,7 +100,7 @@ void Game::Init()
     this->Levels.push_back(GameLevel(bg));
     this->Levels[1].Load("levels/1.lvl", this->Width, this->Height);
     this->Levels.push_back(GameLevel(skybox));
-    this->Levels[2].Load("levels/2.lvl");
+    std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>> cubes_carac = this->Levels[2].Load("levels/2.lvl");
     // Load models
     GameModel raptor = GameModel("models3d/Raptor/Raptor.obj", "raptor");
     raptor.Size = glm::vec3(0.2);
@@ -128,8 +124,8 @@ void Game::Init()
     Object2D dino2 = Object2D(ResourceManager::GetTexture("dino2"), n_max, (GLfloat)this->Width/1024, glm::vec2(dino1.Position.x + ResourceManager::GetTexture("grass0").Width*41*((GLfloat)this->Width/1024), dino1.Position.y - ResourceManager::GetTexture("grass0").Height*2*((GLfloat)this->Width/1024)));
     this->Sprites.push_back(dino2);
     // Set render-specific controls
-    Renderer3d = new SpriteRenderer(shader, GL_FALSE);
-    RendererSkybox = new SpriteRenderer(ResourceManager::GetShader("skybox"), GL_TRUE);
+    Renderer3d = new SpriteRenderer(shader, cubes_carac);
+    RendererSkybox = new SpriteRenderer(ResourceManager::GetShader("skybox"));
     Renderer = new SpriteRenderer(shader, 1, 1);
     RendererSprite = new SpriteRenderer(shader, dino1.Sprite_size.x, dino1.Sprite_size.y);
 }
@@ -158,8 +154,12 @@ void Game::Update(GLfloat dt)
     }
 
     if (this->State == GAME_3D && this->Turbo){
-        this->Cam.Position.x += dt * (this->DinoSpin/50);
-        this->Models[0].Position.x += dt * (this->DinoSpin/50);
+        this->Cam.Position.x += dt * (this->DinoSpin/25);
+        this->Models[0].Position.x += dt * (this->DinoSpin/25);
+        if (this->Models[0].Position.x > 1000){
+            this->Cam.Position.x += -2000-this->Models[0].Position.x;
+            this->Models[0].Position.x = -2000;
+        }
     }
 
 

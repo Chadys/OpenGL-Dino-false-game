@@ -22,7 +22,7 @@ TextRenderer::TextRenderer(GLuint width, GLuint height)
     glGenBuffers(1, &this->VBO);
     glBindVertexArray(this->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * 4, NULL, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -100,10 +100,9 @@ void TextRenderer::RenderText(StateManager &manager, std::string text, GLfloat x
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(this->VAO);
 
-    // Size of the whole text, to be able to center it
+    // Get the size of the whole text, to be able to center it
     glm::vec2 text_size(0);
 
-    // Iterate through all characters
     std::string::const_iterator c;
     for (c = text.begin(); c != text.end(); c++){
         text_size.x += (Characters[*c].Advance >> 6) * scale;
@@ -112,6 +111,7 @@ void TextRenderer::RenderText(StateManager &manager, std::string text, GLfloat x
     }
     text_size *= 0.5f;
 
+    // Iterate through all characters
     for (c = text.begin(); c != text.end(); c++)
     {
         Character ch = Characters[*c];
@@ -122,14 +122,11 @@ void TextRenderer::RenderText(StateManager &manager, std::string text, GLfloat x
         GLfloat w = ch.Size.x * scale;
         GLfloat h = ch.Size.y * scale;
         // Update VBO for each character
-        GLfloat vertices[6][4] = {
+        GLfloat vertices[4][4] = {
+            { xpos,     ypos,       0.0, 0.0 },
             { xpos,     ypos + h,   0.0, 1.0 },
             { xpos + w, ypos,       1.0, 0.0 },
-            { xpos,     ypos,       0.0, 0.0 },
-
-            { xpos,     ypos + h,   0.0, 1.0 },
-            { xpos + w, ypos + h,   1.0, 1.0 },
-            { xpos + w, ypos,       1.0, 0.0 }
+            { xpos + w, ypos + h,   1.0, 1.0 }
         };
         // Render glyph texture over quad
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
@@ -139,7 +136,7 @@ void TextRenderer::RenderText(StateManager &manager, std::string text, GLfloat x
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // Render quad
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         // Now advance cursors for next glyph
         x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (1/64th times 2^6 = 64)
     }
