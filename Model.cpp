@@ -20,12 +20,12 @@ using namespace std;
 Model::Model() 
     : Span_lrf(0), Span_udb(0) { }
 // Draws the model, and thus all its meshes
-void Model::Draw(StateManager &manager, Shader shader, glm::vec3 position, glm::vec3 size, glm::vec3 rotation, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
+void Model::Draw(StateManager &manager, Shader shader, glm::vec3 position, glm::vec3 size, glm::vec3 rotation, glm::vec3 color, GLfloat alpha, glm::mat4 projection, glm::mat4 view)
 {
 	manager.tex2D = NO_TEX;
     manager.Active(shader);
     for(GLuint i = 0; i < this->meshes.size(); i++)
-        this->meshes[i].Draw(shader, position, size, rotation, alpha, projection, view);
+        this->meshes[i].Draw(shader, position, size, rotation, color, alpha, projection, view);
 }
 
 

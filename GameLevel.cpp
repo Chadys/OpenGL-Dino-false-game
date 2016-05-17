@@ -110,7 +110,7 @@ std::pair<std::vector<glm::vec3>,std::vector<glm::vec3>> GameLevel::init(std::ve
     	glm::vec3(0.0f,0.0f,1.0f), //BLUE
     	glm::vec3(0.5f,0.0f,1.0f) //VIOLET
     };
-    for (GLuint i = 0; i < 10000; ++i){
+    for (GLuint i = 0; i < 100000; ++i){
         glm::vec3 pos(RandRange(1000, -1000)*size,(RandRange(max,min)-5)*(size/2),RandRange(1000, -1000)*size);
         glm::vec3 color(rainbow[RandRange(6,0)]);
     	this->Obj.push_back(std::unique_ptr<GameObject>(new Object3D(pos, glm::vec3(size), ResourceManager::GetTexture("fence"), color)));

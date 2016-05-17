@@ -33,13 +33,23 @@ enum Active_Tex2D {
     MENU
 };
 
+// Active fading effect
+enum Fade_Effect {
+	NO_FADE,
+	FADIN,
+	FADOUT
+};
+
 class StateManager{
 public:
     Active_Shader  shader;	
     Active_Tex2D   tex2D;
     GLboolean      tex3D;
+    GLfloat 	   fade;
+    Fade_Effect    Fade;
     StateManager();
     void Active(Shader &_shader);
 	virtual void ActiveTex2D(const Tex& texture);
 	virtual void ActiveTex3D(const Tex& texture);
+	void Update(GLfloat dt);
 };

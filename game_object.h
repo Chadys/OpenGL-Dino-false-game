@@ -60,6 +60,7 @@ public:
     GameModel(std::string file, std::string name);
     // Draw sprite
     void Draw(StateManager &manager, Shader shader, glm::mat4 projection, glm::mat4 view);
+    void Update(GLfloat dt, GLfloat spin);
     // Set model's position correctly :
     // the given side of the model will be localised as to be at pos location if it is facing the orientation side_local
     // Putting the model in its correct orientation for it to work will need to be done elsewhere.

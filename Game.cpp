@@ -133,6 +133,8 @@ void Game::Init()
 /*------------------------------------UPDATE-----------------------------------------*/
 void Game::Update(GLfloat dt)
 {
+    this->State_manager.Update(dt);
+
     if (!Mix_PlayingMusic()){
         Mix_FadeInMusic(ResourceManager::GetMusic(this->Music), -1, 0);
         if (!this->Music.compare("chaosring")){
@@ -145,7 +147,7 @@ void Game::Update(GLfloat dt)
         }
     }
 
-    this->Models[0].Rotation.x += dt * this->DinoSpin;
+    this->Models[0].Update(dt, this->DinoSpin);
 
     if (this->State == GAME_2D){
         for (Object2D &sprite : Sprites)
@@ -190,6 +192,7 @@ void Game::ProcessInput(GLfloat dt)
             Mix_PlayChannel(0, ResourceManager::GetSound("button"), 0);
         else
             Change_level = GL_TRUE;
+        this->State_manager.Fade = FADOUT;
         Mix_FadeOutMusic(1000);
     }
     if(this->Keys[GLFW_KEY_ESCAPE]){
@@ -207,6 +210,7 @@ void Game::ProcessInput(GLfloat dt)
             this->Cam.ProcessKeyboard(RIGHT, dt);
         if(this->Keys[GLFW_KEY_W])
             this->Cam.ProcessKeyboard(FORWARD, dt);
+        // Dino rotation and color
         if(this->Keys[GLFW_KEY_KP_ADD]){
             GLfloat new_spin = this->DinoSpin + 100*dt;
             this->ChangeVolume(this->DinoSpin/10, new_spin/10);
@@ -214,7 +218,6 @@ void Game::ProcessInput(GLfloat dt)
             if (!Mix_Playing(2))
                 Mix_PlayChannel(2, ResourceManager::GetSound("helice"), -1);
         }
-        // Dino rotation
         if(this->Keys[GLFW_KEY_KP_SUBTRACT]){
             GLfloat new_spin = this->DinoSpin - 100*dt;
             if (new_spin < 0)
@@ -223,6 +226,7 @@ void Game::ProcessInput(GLfloat dt)
             this->DinoSpin = new_spin;
             if (!Mix_Playing(2))
                 Mix_PlayChannel(2, ResourceManager::GetSound("helice"), -1);
+
         }
         // Turbo
         if(this->Keys[GLFW_KEY_SPACE] && !this->ProcessedKeys[GLFW_KEY_SPACE]){

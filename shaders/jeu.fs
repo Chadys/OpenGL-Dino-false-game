@@ -20,6 +20,8 @@ uniform bool isCircle;
 uniform vec3 color1;
 uniform vec3 color2;
 
+uniform float fade;
+
 
 vec4 create_border(vec4 color);
 vec3 create_gradient();
@@ -32,7 +34,7 @@ void main()
 	// 3D object, simply apply texture
 	if(is3D)
 	    color = InstanceColor*texture(sprite, TexCoord);
-	else
+	else{
 		// 2D sprite, obtain correct location in sprite sheet
 		if(effect<0){
 			color = texture(sprite, vec2(TexCoord.x+spritePos.x*spriteStep.x,TexCoord.y+spritePos.y*spriteStep.y));
@@ -46,6 +48,8 @@ void main()
 		}
 		if(border)
 			color = create_border(color);
+	}
+	color *= fade;
 	if(color.a<0.1)
 		discard;
     fragcolor = color;
