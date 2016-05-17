@@ -52,7 +52,7 @@ public:
     }
 
     // Render the mesh
-    void Draw(Shader shader, glm::vec3 position, glm::vec3 size, GLfloat rotate, glm::vec3 rotation_angle, GLfloat alpha, glm::mat4 projection, glm::mat4 view) 
+    void Draw(Shader shader, glm::vec3 position, glm::vec3 size, glm::vec3 rotation, GLfloat alpha, glm::mat4 projection, glm::mat4 view) 
     {
         // Bind appropriate textures
         GLuint diffuseNr = 1;
@@ -78,7 +78,9 @@ public:
         // Prepare transformations
         glm::mat4 model;
         model = glm::translate(model, glm::vec3(position));  // First translate (transformations are: scale happens first, then rotation and then final translation happens; reversed order)
-        model = glm::rotate(model, glm::radians(rotate), rotation_angle); // Then rotate
+    	model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f,0.0f,0.0f)); // Then rotate
+    	model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f,1.0f,0.0f));
+    	model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f,0.0f,1.0f));
         model = glm::scale(model, glm::vec3(size)); // Last scale
 
         // Also set each mesh's shininess property to a default value (if you want you could extend this to another mesh property and possibly change this value)

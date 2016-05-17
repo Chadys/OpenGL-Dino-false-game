@@ -8,7 +8,10 @@
 // GLFW
 #include <GLFW/glfw3.h>
 
-// GL includes
+// SDL_Mixer
+#include <SDL/SDL_mixer.h>
+
+// My includes
 #include "game.h"
 #include "resource_manager.h"
 #include "Camera.h"
@@ -18,6 +21,7 @@ void printFps();
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void endmusic_callback();
 
 // Properties
 Game game;
@@ -42,6 +46,11 @@ int main()
 
     const GLuint screenWidth = primary_mode->width, screenHeight = primary_mode->height;
 
+    // Init SDL_Mixer
+    if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) == -1) //Initialisation de l'API Mixer
+	{
+		printf("%s", Mix_GetError());
+	}
 
     // Window
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "AWESOME RAPTOR GAME", glfwGetPrimaryMonitor(), nullptr); // Windowed
@@ -52,6 +61,7 @@ int main()
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    Mix_HookMusicFinished(endmusic_callback);
 
     // Options
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -102,7 +112,7 @@ int main()
     }
     // Delete all resources as loaded using the resource manager
     ResourceManager::Clear();
-
+	Mix_CloseAudio();
     glfwTerminate();
     return 0;
 }
@@ -134,6 +144,10 @@ void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, dou
 void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((unused)) double xoffset, double yoffset)
 {
     game.ProcessMouseScroll(yoffset);
+}
+
+void endmusic_callback(){
+	game.ProcessEndingMusic();
 }
 
 void printFps(void){

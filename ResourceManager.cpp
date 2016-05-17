@@ -14,9 +14,11 @@
 
 // Instantiate static variables
 std::map<std::string, Texture2D>    ResourceManager::Textures;
-std::map<std::string, Texture3D>       ResourceManager::Cubemaps;
+std::map<std::string, Texture3D>    ResourceManager::Cubemaps;
 std::map<std::string, Shader>       ResourceManager::Shaders;
-std::map<std::string, Model>       ResourceManager::Models;
+std::map<std::string, Model>        ResourceManager::Models;
+std::map<std::string, Mix_Music*>   ResourceManager::Musics;
+std::map<std::string, Mix_Chunk*>   ResourceManager::Sons;
 
 
 Shader ResourceManager::LoadShader(const GLchar *vShaderFile, const GLchar *fShaderFile, const GLchar *gShaderFile, std::string name)
@@ -63,6 +65,28 @@ Model ResourceManager::GetModel(std::string name)
     return Models[name];
 }
 
+Mix_Music* ResourceManager::LoadMusic(std::string file, std::string name){
+    Musics[name] = Mix_LoadMUS(file.c_str());
+    if (!Musics[name])
+        cout << "ERROR::SDL_MIXER:: " <<  Mix_GetError() << endl;
+    return Musics[name];
+}
+
+Mix_Music* ResourceManager::GetMusic(std::string name){
+    return Musics[name];
+}
+
+Mix_Chunk* ResourceManager::LoadSound(std::string file, std::string name){
+    Sons[name] = Mix_LoadWAV(file.c_str());
+    if (!Sons[name])
+        cout << "ERROR::SDL_MIXER:: " <<  Mix_GetError() << endl;
+    return Sons[name];
+}
+
+Mix_Chunk* ResourceManager::GetSound(std::string name){
+    return Sons[name];
+}
+
 void ResourceManager::Clear()
 {
     // (Properly) delete all shaders	
@@ -74,6 +98,10 @@ void ResourceManager::Clear()
     // (Properly) delete all cubemaps
     for (auto iter : Cubemaps)
         glDeleteTextures(1, &iter.second.ID);
+    for(auto iterator : Musics)
+        Mix_FreeMusic(iterator.second);
+    for(auto iterator : Sons)
+        Mix_FreeChunk(iterator.second);
 }
 
 Shader ResourceManager::loadShaderFromFile(const GLchar *vShaderFile, const GLchar *fShaderFile, const GLchar *gShaderFile)

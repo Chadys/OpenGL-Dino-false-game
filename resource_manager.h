@@ -8,6 +8,7 @@
 #include <string>
 
 #include <GL/glew.h>
+#include <SDL/SDL_mixer.h>
 
 #include "texture.h"
 #include "shader.h"
@@ -23,10 +24,12 @@ class ResourceManager
 {
 public:
     // Resource storage
-    static std::map<std::string, Shader>    Shaders;
-    static std::map<std::string, Texture2D> Textures;
-    static std::map<std::string, Texture3D> Cubemaps;
-    static std::map<std::string, Model>     Models;
+    static std::map<std::string, Shader>     Shaders;
+    static std::map<std::string, Texture2D>  Textures;
+    static std::map<std::string, Texture3D>  Cubemaps;
+    static std::map<std::string, Model>      Models;
+    static std::map<std::string, Mix_Music*> Musics;
+    static std::map<std::string, Mix_Chunk*> Sons;
     // Loads (and generates) a shader program from file loading vertex, fragment (and geometry) shader's source code. If gShaderFile is not nullptr, it also loads a geometry shader
     static Shader   LoadShader(const GLchar *vShaderFile, const GLchar *fShaderFile, const GLchar *gShaderFile, std::string name);
     // Retrieves a stored sader
@@ -43,6 +46,14 @@ public:
     static Model LoadModel(std::string file, std::string name);
     // Retrieves a stored model
     static Model GetModel(std::string name);
+    // Load a music from file
+    static Mix_Music* LoadMusic(std::string file, std::string name);
+    // Retrieves a stored music
+    static Mix_Music* GetMusic(std::string name);
+    // Load a sound from file
+    static Mix_Chunk* LoadSound(std::string file, std::string name);
+    // Retrieves a stored sound
+    static Mix_Chunk* GetSound(std::string name);
     // Properly de-allocates all loaded resources
     static void Clear();
 private:

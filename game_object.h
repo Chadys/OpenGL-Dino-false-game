@@ -29,13 +29,12 @@ class Game_Object3D
 {
 public:
     // Object state
-    glm::vec3   Position, Size, Color;
-    GLfloat     Alpha, Rotation;
-    glm::vec3   Rotation_angle;
+    glm::vec3   Position, Size, Color, Rotation;
+    GLfloat     Alpha;
     // Constructor(s)
     // Object3D();
     Game_Object3D(glm::vec3 pos, glm::vec3 size, glm::vec3 color = glm::vec3(1.0f))
-     : Position(pos), Size(size), Color(color), Alpha(1.0f), Rotation(0.0f), Rotation_angle(0.0f, 1.0f, 0.0f) { }
+     : Position(pos), Size(size), Color(color), Rotation(0), Alpha(1.0f) { }
 };
 
 

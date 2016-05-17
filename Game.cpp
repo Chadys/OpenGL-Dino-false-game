@@ -19,9 +19,9 @@ SpriteRenderer  *RendererSprite;
 SpriteRenderer  *Renderer3d;
 SpriteRenderer  *RendererSkybox;
 
-
+/*------------------------------------CONSTRUCTOR/DESTRUCTOR-----------------------------------------*/
 Game::Game() 
-	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true), Selected_sprite(GL_FALSE) {
+	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true), Selected_sprite(GL_FALSE), Music("chaosring"), DinoSpin(0.0f) {
 		this->bezier.target = NOP;
 	}
 
@@ -33,6 +33,7 @@ Game::~Game()
     delete RendererSkybox;
 }
 
+/*------------------------------------INIT-----------------------------------------*/
 void Game::Init()
 {
 	//Adapt camera speed for 2D and depending on the screen size (it was originalled choosen for a 800x600 screen)
@@ -47,8 +48,26 @@ void Game::Init()
     ResourceManager::LoadShader("shaders/skybox.vs", "shaders/skybox.fs", nullptr, "skybox");
     ResourceManager::LoadShader("shaders/text.vs", "shaders/text.fs", nullptr, "text");
     // Configure shaders
-    
     shader.Use().SetInteger("sprite", 0);
+
+    //Load musics
+    ResourceManager::LoadMusic("sounds/Chaos Rings 2_ It's Me We're Talkin' About! - Noriyasu Agematsu.mp3", "chaosring");
+    ResourceManager::LoadMusic("sounds/Jurassic Park Game Boy Level 1 Music.mp3", "jurassic");
+    ResourceManager::LoadMusic("sounds/Mega Man 2_ Dr. Wily Stage 1 Music EXTENDED.mp3", "megaman");
+    ResourceManager::LoadMusic("sounds/Techno Trance - Tetris.mp3", "tetris");
+
+    //Load sounds
+    ResourceManager::LoadSound("sounds/blop.wav", "jump");
+    ResourceManager::LoadSound("sounds/button.wav", "button");
+    ResourceManager::LoadSound("sounds/dino_hurt.wav", "hurt");
+    ResourceManager::LoadSound("sounds/dino_scream.wav", "growl");
+    ResourceManager::LoadSound("sounds/quit.wav", "quit");
+    ResourceManager::LoadSound("sounds/scratch.wav", "scratch");
+    ResourceManager::LoadSound("sounds/whip.wav", "whip");
+    ResourceManager::LoadSound("sounds/helice.wav", "helice");
+    Mix_AllocateChannels(3);
+    Mix_Volume(1, MIX_MAX_VOLUME/3);
+
     // Load textures
 
     // TEXTURE 3D
@@ -86,7 +105,7 @@ void Game::Init()
     // Load models
     GameModel raptor = GameModel("models3d/Raptor/Raptor.obj", "raptor");
     raptor.Size = glm::vec3(0.2);
-    raptor.Rotation=180;
+    raptor.Rotation.y=180;
     raptor.SetSide(0.5, DOWN_SIDE);
     this->Models.push_back(raptor);
     // Load sprites
@@ -112,10 +131,26 @@ void Game::Init()
     RendererSprite = new SpriteRenderer(shader, dino1.Sprite_size.x, dino1.Sprite_size.y);
 }
 
+/*------------------------------------UPDATE-----------------------------------------*/
 void Game::Update(GLfloat dt)
 {
+    if (!Mix_PlayingMusic()){
+        Mix_FadeInMusic(ResourceManager::GetMusic(this->Music), -1, 0);
+        if (!this->Music.compare("chaosring")){
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_CULL_FACE); 
+        }
+        else if (!this->Music.compare("tetris")){
+            glEnable(GL_DEPTH_TEST);
+            glEnable(GL_CULL_FACE); 
+        }
+    }
+
+    this->Models[0].Rotation.x += dt * this->DinoSpin;
+
     for (Object2D &sprite : Sprites)
         sprite.Update(dt);
+
     if(this->bezier.target == CAM_JUMP){
     	float dist = sqrt(pow(this->bezier.depart.x-this->bezier.arrivee.x,2)+pow(this->bezier.depart.y-this->bezier.arrivee.y,2)+pow(this->bezier.depart.z-this->bezier.arrivee.z,2));
     	this->bezier.time_elapsed += (1/dist*500)*dt;
@@ -133,10 +168,16 @@ void Game::Update(GLfloat dt)
     }
 }
 
-
+/*------------------------------------PROCESSORS-----------------------------------------*/
 void Game::ProcessInput(GLfloat dt)
 {
 
+    if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
+        this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
+        if (this->State == GAME_MENU)
+            Mix_PlayChannel(0, ResourceManager::GetSound("quit"), 0);
+        Mix_FadeOutMusic(1000);
+    }
     // Camera controls
     if(this->State == GAME_3D){
         if(this->Keys[GLFW_KEY_S])
@@ -147,15 +188,26 @@ void Game::ProcessInput(GLfloat dt)
             this->Cam.ProcessKeyboard(RIGHT, dt);
         if(this->Keys[GLFW_KEY_W])
             this->Cam.ProcessKeyboard(FORWARD, dt);
-
-        if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
-        	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
-            this->GoMENU();
+        if(this->Keys[GLFW_KEY_KP_ADD]){
+            GLfloat new_spin = this->DinoSpin + 100*dt;
+            this->ChangeVolume(this->DinoSpin/10, new_spin/10);
+            this->DinoSpin = new_spin;
+            if (!Mix_Playing(2))
+                Mix_PlayChannel(2, ResourceManager::GetSound("helice"), -1);
+        }
+        if(this->Keys[GLFW_KEY_KP_SUBTRACT]){
+            GLfloat new_spin = this->DinoSpin - 100*dt;
+            if (new_spin < 0)
+                new_spin = 0;
+            this->ChangeVolume(this->DinoSpin/10, new_spin/10);
+            this->DinoSpin = new_spin;
+            if (!Mix_Playing(2))
+                Mix_PlayChannel(2, ResourceManager::GetSound("helice"), -1);
         }
     }
 
     else if(this->State == GAME_2D){
-    	GLboolean move = GL_FALSE;
+    	GLboolean move = GL_FALSE, walk = GL_FALSE;
     	if (this->bezier.target == CAM_JUMP){
     		this->Sprites[Selected_sprite].SetState(JUMP);
     		return;
@@ -171,52 +223,47 @@ void Game::ProcessInput(GLfloat dt)
         } 
         if(this->Keys[GLFW_KEY_KP_0] && !this->ProcessedKeys[GLFW_KEY_KP_0]){
         	this->ProcessedKeys[GLFW_KEY_KP_0] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(2, 0);
         }
         if(this->Keys[GLFW_KEY_KP_1] && !this->ProcessedKeys[GLFW_KEY_KP_1]){
         	this->ProcessedKeys[GLFW_KEY_KP_1] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(1, 1);
         }
         if(this->Keys[GLFW_KEY_KP_2] && !this->ProcessedKeys[GLFW_KEY_KP_2]){
         	this->ProcessedKeys[GLFW_KEY_KP_2] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(1, -1);
         }
         if(this->Keys[GLFW_KEY_KP_3] && !this->ProcessedKeys[GLFW_KEY_KP_3]){
         	this->ProcessedKeys[GLFW_KEY_KP_3] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(2, -1);
         }
         if(this->Keys[GLFW_KEY_KP_4] && !this->ProcessedKeys[GLFW_KEY_KP_4]){
         	this->ProcessedKeys[GLFW_KEY_KP_4] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(3, -2);
         }
         if(this->Keys[GLFW_KEY_KP_5] && !this->ProcessedKeys[GLFW_KEY_KP_5]){
         	this->ProcessedKeys[GLFW_KEY_KP_5] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(6, -2);
         }
         if(this->Keys[GLFW_KEY_KP_6] && !this->ProcessedKeys[GLFW_KEY_KP_6]){
         	this->ProcessedKeys[GLFW_KEY_KP_6] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(3, -1);
         }
         if(this->Keys[GLFW_KEY_KP_7] && !this->ProcessedKeys[GLFW_KEY_KP_7]){
         	this->ProcessedKeys[GLFW_KEY_KP_7] = GL_TRUE;
+            Mix_PlayChannel(0, ResourceManager::GetSound("jump"), 0);
             this->SetBezier(6, -5);
         }
-
         if(this->Keys[GLFW_KEY_S]){
             this->Cam.ProcessKeyboard(DOWN, dt);
             this->Sprites[Selected_sprite].SetState(DEAD);
-            move = GL_TRUE;
-        }
-        if(this->Keys[GLFW_KEY_A]){
-            this->Cam.ProcessKeyboard(LEFT, dt);
-            this->Sprites[Selected_sprite].Reversed = GL_FALSE;
-            this->Sprites[Selected_sprite].SetState(WALK);
-            move = GL_TRUE;
-        }
-        if(this->Keys[GLFW_KEY_D]){
-            this->Cam.ProcessKeyboard(RIGHT, dt);
-            this->Sprites[Selected_sprite].Reversed = GL_TRUE;
-            this->Sprites[Selected_sprite].SetState(WALK);
             move = GL_TRUE;
         }
         if(this->Keys[GLFW_KEY_W]){
@@ -224,19 +271,39 @@ void Game::ProcessInput(GLfloat dt)
             this->Sprites[Selected_sprite].SetState(JUMP);
             move = GL_TRUE;
         }
+        if(this->Keys[GLFW_KEY_A]){
+            this->Cam.ProcessKeyboard(LEFT, dt);
+            this->Sprites[Selected_sprite].Reversed = GL_FALSE;
+            this->Sprites[Selected_sprite].SetState(WALK);
+            if(!Mix_Playing(1) && !move)
+                Mix_PlayChannel(1, ResourceManager::GetSound("scratch"), -1);
+            move = GL_TRUE;
+            walk = GL_TRUE;
+        }
+        if(this->Keys[GLFW_KEY_D]){
+            this->Cam.ProcessKeyboard(RIGHT, dt);
+            this->Sprites[Selected_sprite].Reversed = GL_TRUE;
+            this->Sprites[Selected_sprite].SetState(WALK);
+            if(!Mix_Playing(1) && !move)
+                Mix_PlayChannel(1, ResourceManager::GetSound("scratch"), -1);
+            move = GL_TRUE;
+            walk = GL_TRUE;
+        }
 
-        if(this->Keys[GLFW_KEY_SPACE])
+        if(this->Keys[GLFW_KEY_SPACE]){
             this->Sprites[Selected_sprite].SetState(WHIP);
-        if(this->Keys[GLFW_KEY_RIGHT_SHIFT])
+            Mix_PlayChannel(0, ResourceManager::GetSound("whip"), 0);
+        }
+        if(this->Keys[GLFW_KEY_RIGHT_SHIFT]){
             this->Sprites[!Selected_sprite].SetState(BITE);
+            Mix_PlayChannel(0, ResourceManager::GetSound("growl"), 0);
+        }
 
         if (!move && !this->Sprites[Selected_sprite].IsState(WHIP))
             this->Sprites[Selected_sprite].SetState(IDLE);
 
-        if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
-        	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
-            this->Go3D();
-        }
+        if(Mix_Playing(1) && !walk)
+            Mix_HaltChannel(1);
     }
 
     // Menu
@@ -248,12 +315,6 @@ void Game::ProcessInput(GLfloat dt)
         if(this->Keys[GLFW_KEY_DOWN] && !this->ProcessedKeys[GLFW_KEY_DOWN]){
         	this->ProcessedKeys[GLFW_KEY_DOWN] = GL_TRUE;
         	this->Levels[0].ChangeButton(GL_FALSE);
-        }
-
-        if(this->Keys[GLFW_KEY_ENTER] && !this->ProcessedKeys[GLFW_KEY_ENTER]){
-        	this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
-            this->Levels[0].ActiveContinue();
-            this->Go2D();
         }
     }
 }
@@ -284,8 +345,21 @@ void Game::ProcessMouseScroll(GLdouble yoffset)
 	if(this->State == GAME_3D)
     	this->Cam.ProcessMouseScroll(yoffset);
 }
+void Game::ProcessEndingMusic(){
+    Mix_HaltChannel(-1);
+    switch(this->State){
+        case (GAME_MENU):
+            this->Go2D();
+            break;
+        case(GAME_2D):
+            this->Go3D();
+            break;
+        default: // 3D
+            this->GoMENU();
+    }
+}
 
-
+/*------------------------------------RENDER-----------------------------------------*/
 void Game::Render()
 {    
 	// Create camera transformation
@@ -320,24 +394,28 @@ void Game::Render()
     }
 }
 
+/*------------------------------------CHANGE_STATE-----------------------------------------*/
 void Game::GoMENU(){
+    this->Music = "chaosring";
     this->State = GAME_MENU;
     this->Cam = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE); 
     this->Cam.MovementSpeed = 100.0f*this->Width/800;
 }
 void Game::Go2D(){
+    this->Music = "jurassic";
     this->State = GAME_2D;
+    this->Levels[0].ActiveContinue();
 }
 void Game::Go3D(){
+    this->Music = "tetris";
     this->State = GAME_3D;
     this->Cam = Camera(glm::vec3(0.0f, 0.5-this->Models[0].model.Span_udb.y*this->Models[0].Size.y, 10.0f));
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE); 
     this->Cam.MovementSpeed = SPEED;
+    this->DinoSpin = 0.0f;
+    Mix_Volume(2, 0);
 }
 
+/*------------------------------------MISCELLANOUS-----------------------------------------*/
 glm::vec3 Game::Update_Bezier(glm::vec3 depart,glm::vec3 middle,glm::vec3 arrivee, GLfloat t){
 	glm::vec3 new_vec;
 	if (t > 1)
@@ -363,4 +441,23 @@ void Game::SetBezier(glm::vec3 new_cam_pos){
 	this->bezier.depart = this->Cam.Position;
 	this->bezier.arrivee = new_cam_pos;
 	this->bezier.middle = this->bezier.depart+(this->bezier.arrivee-this->bezier.depart)*0.5f;
+}
+
+// Change the volume of the helice sound if the raptor's rotation speed change.
+void Game::ChangeVolume(GLfloat prev, GLfloat next){
+    GLuint etape = 15;
+    GLfloat step = MIX_MAX_VOLUME/etape;
+    if ((next >= MIX_MAX_VOLUME && prev < MIX_MAX_VOLUME) || (next == 0 && prev > 0)){
+        Mix_Volume(2, next);
+        Mix_HaltChannel(2);
+        return;
+    }
+
+    for (GLuint i = 0 ; i < etape ; i++){
+        GLuint volume = i*step;
+        if(prev < volume && next > volume){
+            Mix_Volume(2, volume);
+            Mix_HaltChannel(2);
+        }
+    }
 }

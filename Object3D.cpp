@@ -11,6 +11,6 @@ Object3D::Object3D(glm::vec3 pos, glm::vec3 size, Texture2D sprite, glm::vec3 co
 
 void Object3D::Draw(StateManager &manager, SpriteRenderer &renderer, glm::mat4 projection, glm::mat4 view)
 {
-    renderer.DrawSprite(manager, this->Tex, this->Position, this->Size, this->Rotation, this->Rotation_angle, this->Color, this->Alpha, projection, view);
+    renderer.DrawSprite(manager, this->Tex, this->Position, this->Size, this->Rotation, this->Color, this->Alpha, projection, view);
 }
 
