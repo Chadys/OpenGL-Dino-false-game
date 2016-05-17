@@ -77,7 +77,8 @@ void Object2D::Animate(GLfloat dt){
 		if(this->Sound_played){
 			this->SetState(DEAD);
 			this->Alpha = 1;
-			this->Sound_played = GL_FALSE;			
+			this->Sound_played = GL_FALSE;	
+        	Mix_FadeOutMusic(1000);		
 		}
 		else
 			this->Alpha -= dt/2;

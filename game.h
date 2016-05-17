@@ -75,7 +75,8 @@ private:
     Bezier				   				bezier;
     GLboolean			   				Selected_sprite;
     std::string							Music;			
-    GLfloat								DinoSpin;		
+    GLfloat								DinoSpin;	
+    GLboolean			   				Change_level, Turbo;	
 
     void GoMENU();
     void Go2D();

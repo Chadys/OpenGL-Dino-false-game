@@ -22,5 +22,6 @@ In the 2D level :
 In the 3D level :
 	The mouse position, scroll and keys W-S-A-D control the camera.
 	The keypad MINUS and ADD will make the dinosaur increase or decrease its rotation.
+	The SPACE bar will make you advance with the dinosaur.
 
 I thank http://learnopengl.com/ which was my main source of knowledge.

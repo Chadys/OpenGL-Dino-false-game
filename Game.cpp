@@ -21,7 +21,7 @@ SpriteRenderer  *RendererSkybox;
 
 /*------------------------------------CONSTRUCTOR/DESTRUCTOR-----------------------------------------*/
 Game::Game() 
-	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true), Selected_sprite(GL_FALSE), Music("chaosring"), DinoSpin(0.0f) {
+	: State(GAME_MENU), Keys(), ProcessedKeys(), Cam(glm::vec3(0.0f, 0.0f, 0.0f)), lastX(400), lastY(300), firstMouse(true), Selected_sprite(GL_FALSE), Music("chaosring"), DinoSpin(0.0f), Change_level(GL_FALSE), Turbo(GL_FALSE) {
 		this->bezier.target = NOP;
 	}
 
@@ -157,6 +157,11 @@ void Game::Update(GLfloat dt)
         this->Levels[1].Update(dt, this->Width, this->Height, glm::vec2(this->Cam.Position.x,this->Cam.Position.y));
     }
 
+    if (this->State == GAME_3D && this->Turbo){
+        this->Cam.Position.x += dt * (this->DinoSpin/50);
+        this->Models[0].Position.x += dt * (this->DinoSpin/50);
+    }
+
 
     if(this->bezier.target == CAM_JUMP){
     	float dist = sqrt(pow(this->bezier.depart.x-this->bezier.arrivee.x,2)+pow(this->bezier.depart.y-this->bezier.arrivee.y,2)+pow(this->bezier.depart.z-this->bezier.arrivee.z,2));
@@ -183,6 +188,8 @@ void Game::ProcessInput(GLfloat dt)
         this->ProcessedKeys[GLFW_KEY_ENTER] = GL_TRUE;
         if (this->State == GAME_MENU)
             Mix_PlayChannel(0, ResourceManager::GetSound("button"), 0);
+        else
+            Change_level = GL_TRUE;
         Mix_FadeOutMusic(1000);
     }
     if(this->Keys[GLFW_KEY_ESCAPE]){
@@ -191,6 +198,7 @@ void Game::ProcessInput(GLfloat dt)
     }
 
     if(this->State == GAME_3D){
+        // Cam
         if(this->Keys[GLFW_KEY_S])
             this->Cam.ProcessKeyboard(BACKWARD, dt);
         if(this->Keys[GLFW_KEY_A])
@@ -206,6 +214,7 @@ void Game::ProcessInput(GLfloat dt)
             if (!Mix_Playing(2))
                 Mix_PlayChannel(2, ResourceManager::GetSound("helice"), -1);
         }
+        // Dino rotation
         if(this->Keys[GLFW_KEY_KP_SUBTRACT]){
             GLfloat new_spin = this->DinoSpin - 100*dt;
             if (new_spin < 0)
@@ -215,23 +224,28 @@ void Game::ProcessInput(GLfloat dt)
             if (!Mix_Playing(2))
                 Mix_PlayChannel(2, ResourceManager::GetSound("helice"), -1);
         }
+        // Turbo
+        if(this->Keys[GLFW_KEY_SPACE] && !this->ProcessedKeys[GLFW_KEY_SPACE]){
+            this->ProcessedKeys[GLFW_KEY_SPACE] = GL_TRUE;
+            this->Turbo = !this->Turbo;
+        }
     }
 
     else if(this->State == GAME_2D){
     	GLboolean move = GL_FALSE, walk = GL_FALSE;
     	if (this->bezier.target == CAM_JUMP){
-    		this->Sprites[Selected_sprite].SetState(JUMP);
+    		this->Sprites[this->Selected_sprite].SetState(JUMP);
     		return;
     	}
         if (this->bezier.target == CAM_SLIDE){
-            this->Sprites[Selected_sprite].SetState(IDLE);
+            this->Sprites[this->Selected_sprite].SetState(IDLE);
             return;
         }
         if(this->Keys[GLFW_KEY_BACKSPACE] && !this->ProcessedKeys[GLFW_KEY_BACKSPACE]){
         	this->ProcessedKeys[GLFW_KEY_BACKSPACE] = GL_TRUE;
-        	this->SetBezier(this->Sprites[Selected_sprite].ExchangeSprite(this->Sprites[!Selected_sprite], this->Cam.Position));
-        	this->Sprites[Selected_sprite].SetState(IDLE);
-            this->Selected_sprite = !Selected_sprite;
+        	this->SetBezier(this->Sprites[this->Selected_sprite].ExchangeSprite(this->Sprites[!Selected_sprite], this->Cam.Position));
+        	this->Sprites[this->Selected_sprite].SetState(IDLE);
+            this->Selected_sprite = !this->Selected_sprite;
         } 
         // --------------------------------JUMPS --------------------------------- //
         if(this->Keys[GLFW_KEY_KP_0] && !this->ProcessedKeys[GLFW_KEY_KP_0]){
@@ -319,6 +333,7 @@ void Game::ProcessInput(GLfloat dt)
             this->Sprites[!Selected_sprite].SetState(BITE);
             //Start hurt animation on the other dino
             this->Sprites[Selected_sprite].Animation_timer = 0;
+            this->Music = "megaman";
             Mix_PlayChannel(0, ResourceManager::GetSound("growl"), 0);
         }
 
@@ -377,7 +392,10 @@ void Game::ProcessEndingMusic(){
             this->Go2D();
             break;
         case(GAME_2D):
-            this->Go3D();
+            if (Change_level)
+                this->Go3D();
+            else
+                Change_level = GL_TRUE;
             break;
         default: // 3D
             this->GoMENU();
