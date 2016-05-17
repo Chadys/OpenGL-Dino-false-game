@@ -33,13 +33,15 @@ void main()
 	    color = vec4(spriteColor, spriteAlpha)*texture(sprite, TexCoord);
 	else
 		// 2D sprite, obtain correct location in sprite sheet
-		if(effect<0)
+		if(effect<0){
 			color = texture(sprite, vec2(TexCoord.x+spritePos.x*spriteStep.x,TexCoord.y+spritePos.y*spriteStep.y));
+			color.w = color.w*spriteAlpha;
+		}
 		// 2D colored square, apply correct color depending on the choosen effect
 		else{
+			color = vec4(create_gradient(), 1);
 			if(isCircle && !inCircle())
 				discard;
-			color = vec4(create_gradient(), 1);
 		}
 		if(border)
 			color = create_border(color);
@@ -49,7 +51,7 @@ void main()
 }
 
 bool inCircle(){
-	if (distance(TexCoord, vec2(0.5,0.5)) > 1)
+	if (distance(TexCoord, vec2(0.5,0.5)) > 0.5)
 		return false;
 	return true;
 }

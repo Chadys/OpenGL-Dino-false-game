@@ -55,7 +55,7 @@ void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::
 }
 
 // TEXTURED SQUARE
-void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::vec2 position, glm::vec2 size, GLboolean border, glm::mat4 projection, glm::mat4 view, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
+void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::vec2 position, glm::vec2 size, GLboolean border, glm::mat4 projection, glm::mat4 view, GLfloat alpha, GLboolean reversed, GLuint line, GLuint col, glm::vec2 sprite_size)
 {
     //Prepare transformations
     manager.Active(this->shader);
@@ -75,6 +75,7 @@ void SpriteRenderer::DrawSprite(StateManager &manager, const Tex &texture, glm::
     this->shader.SetMatrix4("projection", projection);
 
     this->shader.SetInteger("border", border);
+    this->shader.SetFloat("spriteAlpha", alpha);
     this->shader.SetVector2uint("spritePos", col, line);
     this->shader.SetVector2f("spriteStep", sprite_size);
   

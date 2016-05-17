@@ -31,6 +31,21 @@ void GameLevel::LoadMenu(GLuint width, GLuint height)
     this->initMenu(width, height);
 }
 
+void GameLevel::Update(GLfloat dt, GLuint width, GLuint height, glm::vec2 cam_pos){
+	std::vector<Square>::iterator i = this->Squares.begin();
+	while (i != this->Squares.end()){
+    	i->Position+=i->Velocity*dt;
+    	// Clean square out of the screen
+    	if ((i->Position.x+i->Size.x < cam_pos.x && i->Velocity.x < 0) ||
+    		(i->Position.x-i->Size.x > cam_pos.x+width && i->Velocity.x > 0) ||
+    		(i->Position.y+i->Size.y < cam_pos.y && i->Velocity.y < 0) ||
+    		(i->Position.y-i->Size.y > cam_pos.y+height && i->Velocity.y > 0))
+    			i = this->Squares.erase(i);
+    	else
+    		i++;
+    }
+}
+
 void GameLevel::Draw(StateManager &manager, SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection, glm::mat4 view)
 {
     for (Text &text : this->Texts)
@@ -142,6 +157,9 @@ void GameLevel::initMenu(GLfloat width, GLfloat height)
     this->Squares.push_back(Square(glm::vec2(b_x,b_y + pas_y*5), glm::vec2(b_width, b_height), glm::vec3(0.0f,0.6f,1.0f), glm::vec3(0.0f,0.1f,0.2f), V_GRAD));
     this->Texts.push_back(Text("Quitter", glm::vec2(x,y + pas_y*5), size_factor));
 
+    this->Texts.push_back(Text("RAPTOR", glm::vec2(width/4.25, height/6), size_factor*3, glm::vec3(0.3f,0.3f,1.0f)));
+    this->Texts.push_back(Text("SIMULATOR", glm::vec2(width/4.25, height/6+50*size_factor*3), size_factor*2, glm::vec3(0.3f,0.3f,1.0f)));
+
     this->T_renderer.reset(new TextRenderer(width, height));
     this->T_renderer->Load("fonts/Futura_Bold_Font/a_FuturaOrto-Bold_2258.ttf",50);
     this->Select(0);
@@ -230,4 +248,37 @@ void GameLevel::Deselect(GLuint n){
 	std::swap(this->Squares[n].Color1, this->Squares[n].Color2);
 	this->Texts[n].Size_factor /= 1.2f;
 	this->Texts[n].Color = glm::vec3(0);
+}
+
+void GameLevel::AddCircles(GLuint width, GLuint height, glm::vec2 cam_pos){
+	glm::vec2 pos, size, velocity;
+	glm::vec3 color;
+	GLfloat screen_factor = width/1920;
+	
+	for (GLuint i = 0 ; i < 50 ; i++){
+		for (GLuint j = 0 ; j < 4 ; j++){
+			switch (i){
+				case 0 : //create circles to the left
+					pos.x = rand() %-50 -200;
+					pos.y = rand() %(100+height) -100;
+					break;
+				case 1 : //create circles to the right
+					pos.x = rand() %(width+200) + width+50;
+					pos.y = rand() %(100+height) -100;
+					break;
+				case 2 : //create circles up
+					pos.x = rand() %(100+width) -100;
+					pos.y = rand() %-50 -200;
+					break;
+				default : //create circles down
+					pos.x = rand() %(100+width) -100;
+					pos.y = rand() %(200+height) + height+50;
+			}
+			size = glm::vec2(rand() %150 +30);
+			color = glm::vec3((GLfloat) rand() / RAND_MAX, (GLfloat) rand() / RAND_MAX, (GLfloat) rand() / RAND_MAX);
+			velocity = glm::normalize(glm::vec2(width/2, height/2) - pos) * (GLfloat)(rand()%200 +125);
+
+			this->Squares.push_back(Square((pos+cam_pos)*screen_factor, size*screen_factor, color, glm::vec3(1), RADIAL_GRAD, velocity*screen_factor, GL_TRUE));
+		}
+	}
 }

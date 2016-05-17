@@ -39,9 +39,11 @@ public:
     // Render level
     virtual void      Draw(StateManager &manager, SpriteRenderer &renderer, SpriteRenderer &bgrenderer, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4());
     virtual void      Draw(StateManager &manager, SpriteRenderer &renderer, GLuint width, GLuint height, glm::mat4 projection = glm::mat4(), glm::mat4 view = glm::mat4(), GLboolean menu = GL_FALSE);
-    // Menu buttons state change
+    // Menu buttons, state change
+    void Update(GLfloat dt, GLuint width, GLuint height, glm::vec2 cam_pos);
     void ActiveContinue();
     void ChangeButton(GLboolean up);
+    void AddCircles(GLuint width, GLuint height, glm::vec2 cam_pos);
 private:
     // Initialize level from tile data
     std::vector<std::vector<GLint>>      load(const GLchar *file);

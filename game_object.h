@@ -103,6 +103,7 @@ public:
     glm::vec2           Position, Size;
     GLboolean           Reversed;
     glm::vec2           Sprite_size; //width and height of one sprite in the texture, in a 0-1 range
+    GLfloat     		Alpha, Animation_timer;
     // Constructor(s)
     Object2D(Texture2D sprite, glm::vec2 position);
     Object2D(Texture2D sprite, glm::vec2 position, glm::vec2 size);
@@ -118,6 +119,8 @@ private:
     State               Action; //line
     GLdouble            N_img; //column
     std::vector<GLuint> N_max;// number of the images composing each animation (classed by line number)
+    GLboolean			Sound_played;
+    void 		 Animate(GLfloat dt);
 };
 
 
