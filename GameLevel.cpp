@@ -221,6 +221,7 @@ std::vector<std::vector<GLint>> GameLevel::load(const GLchar *file)
             boxData.push_back(row);
         }
     }
+    fstream.close();
     return boxData;
 }
 

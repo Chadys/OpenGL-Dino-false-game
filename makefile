@@ -5,11 +5,14 @@ packages = glfw3 glew assimp freetype2
 CPPFLAGS := $(shell pkg-config --cflags $(packages))
 LIBS := $(shell pkg-config --static --libs $(packages))
 LDFLAGS = -lSOIL -lSDL2_mixer -lSDL2
+OBJ = main.o ResourceManager.o Shader.o Texture2D.o Game.o SpriteRenderer.o Object3D.o GameLevel.o Model.o Texture3D.o GameModel.o Object2D.o Square.o TextRenderer.o Text.o StateManager.o
 
-$(EXE): main.cpp ResourceManager.cpp Shader.cpp Texture2D.cpp Game.cpp SpriteRenderer.cpp Object3D.cpp GameLevel.cpp Model.cpp Texture3D.cpp GameModel.cpp Object2D.cpp Square.cpp TextRenderer.cpp Text.cpp StateManager.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(CPPFLAGS) $(LIBS)
+$(EXE): $(OBJ)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(CPPFLAGS) $(LIBS)
+
+%.o: %.c
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 clean:
 	rm -f $(EXE) *.o
 .PHONY: all clean
-	

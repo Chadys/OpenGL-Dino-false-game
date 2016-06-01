@@ -1,5 +1,11 @@
+// C Library Includes
+#include <signal.h>
+
 // Std. Includes
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 // GLEW
 #define GLEW_STATIC
@@ -17,17 +23,21 @@
 #include "Camera.h"
 
 // Function prototypes
+void sigint_handler(int sig);
 void printFps();
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void simple_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void endmusic_callback();
 
 // Properties
 Game game;
+bool record = false;
+std::fstream prog;
 
 // The MAIN function, from here we start our application and run our Game loop
-int main()
+int main (int argc, char *argv[])
 {
     // Init GLFW
     glfwInit();
@@ -57,10 +67,37 @@ int main()
     glViewport(0, 0, screenWidth, screenHeight);
     glfwMakeContextCurrent(window);
 
+    // Recording 
+    GLfloat prog_time = 0;
+    std::istringstream prog_reader;
+
+    if (argc > 1 && !std::string("record").compare(argv[1]))
+    	record = true;
+    if(record)
+    	prog.open("levels/schedule.prg", ios::out | ios::trunc);
+    else
+    	prog.open("levels/schedule.prg", ios::in);
+    if (!prog.is_open())
+    	std::cout << "ERROR::STREAM: Could not open file." << std::endl;
+
+    else if (!record){
+    	std::string line;
+        if (std::getline(prog, line)){ // Read first line of prog
+        	prog_reader.str(line);
+        	prog_reader >> prog_time; // Get the first word in line (the time)
+        }
+    }
+
     // Set the required callback functions
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    signal(SIGINT, sigint_handler);
+
+    if(record){
+        glfwSetKeyCallback(window, key_callback);
+        glfwSetCursorPosCallback(window, mouse_callback);
+        glfwSetScrollCallback(window, scroll_callback);
+    }
+    else
+        glfwSetKeyCallback(window, simple_key_callback);
     Mix_HookMusicFinished(endmusic_callback);
 
     // Options
@@ -78,9 +115,10 @@ int main()
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glLineWidth(screenHeight/160); 
 
-    // DeltaTime variables
+    // Time variables
     GLfloat deltaTime = 0.0f;
     GLfloat lastFrame = 0.0f;
+
 
     // Initialize game
     game.Init();
@@ -95,6 +133,44 @@ int main()
         lastFrame = currentFrame;
         //printf("%f\n", deltaTime);
         glfwPollEvents();
+
+        // Read record
+    	if (!record){
+    		while (prog_time && prog_time <= currentFrame){
+    			char type;
+    			if (prog_reader >> type){
+    				switch(type){
+    					case 'k': //Keyboard event
+    						int key, action;
+    						if (prog_reader >> key && prog_reader >> action){
+    							action = action ? GLFW_PRESS : GLFW_RELEASE;
+    							key_callback(window, key, 0, action, 0);
+    						}
+    						break;
+    					case 's': //scroll event
+    						double yoffset;
+    						if (prog_reader >> yoffset)
+    							scroll_callback(window, 0, yoffset);
+    						break;
+    					case 'm': //mouse event
+    						double xpos, ypos;
+    						if (prog_reader >> xpos && prog_reader >> ypos)
+    							mouse_callback(window, xpos, ypos);
+    						break;
+    					default:
+    						break;
+    				}
+    			}
+    			prog_time = 0;
+    			std::string line;
+        		if (std::getline(prog, line)){
+        			prog_reader.str(line);
+        			prog_reader.clear();
+        			prog_reader >> prog_time;
+        		}
+    		}
+		}
+
 
         // Manage user input
         game.ProcessInput(deltaTime);
@@ -111,6 +187,8 @@ int main()
         glfwSwapBuffers(window);
     }
     // Delete all resources as loaded using the resource manager
+    if (prog.is_open())
+    	prog.close();
     ResourceManager::Clear();
 	Mix_CloseAudio();
     glfwTerminate();
@@ -119,7 +197,11 @@ int main()
 
 
 // Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow* window, int key, __attribute__((unused)) int scancode, int action, __attribute__((unused)) int mode)
+void simple_key_callback(GLFWwindow* window, int key, __attribute__((unused)) int scancode, int action, __attribute__((unused)) int mods){
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+}
+void key_callback(GLFWwindow* window, int key, __attribute__((unused)) int scancode, int action, __attribute__((unused)) int mods)
 {
     //cout << key << endl;
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -133,17 +215,32 @@ void key_callback(GLFWwindow* window, int key, __attribute__((unused)) int scanc
             game.ProcessedKeys[key] = GL_FALSE; 
         }
     }
+    //Write record
+    if (record && prog.is_open()){
+    	if (action == GLFW_PRESS)
+    		prog << glfwGetTime() << " k " << (int)key << " " << 1 << std::endl;
+    	else if(action == GLFW_RELEASE)
+    		prog << glfwGetTime() << " k " << (int)key << " " << 0 << std::endl;
+    }
 }
 
 void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, double ypos)
 {
     game.ProcessMouseMovement(xpos, ypos);
+
+    //Write record
+    if (record && prog.is_open() && game.State == GAME_3D)
+    	prog << glfwGetTime() << " m " << xpos << " " << ypos << std::endl;
 }   
 
 
 void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((unused)) double xoffset, double yoffset)
 {
     game.ProcessMouseScroll(yoffset);
+
+    //Write record
+    if (record && prog.is_open() && game.State == GAME_3D)
+    	prog << glfwGetTime() << " s " << yoffset << std::endl;
 }
 
 void endmusic_callback(){
@@ -160,4 +257,14 @@ void printFps(void){
         t0 = t;
         f  = 0; 
     }
+}
+
+
+void sigint_handler(__attribute__((unused)) int sig) {
+    if (prog.is_open())
+    	prog.close();
+    ResourceManager::Clear();
+	Mix_CloseAudio();
+    glfwTerminate();
+    exit(1);
 }

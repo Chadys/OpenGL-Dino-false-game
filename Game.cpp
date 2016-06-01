@@ -159,8 +159,8 @@ void Game::Update(GLfloat dt)
         this->Cam.Position.x += dt * (this->DinoSpin/25);
         this->Models[0].Position.x += dt * (this->DinoSpin/25);
         if (this->Models[0].Position.x > 1000){
-            this->Cam.Position.x += -2000-this->Models[0].Position.x;
-            this->Models[0].Position.x = -2000;
+            this->Cam.Position.x += -1500-this->Models[0].Position.x;
+            this->Models[0].Position.x = -1500;
         }
     }
 

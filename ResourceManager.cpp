@@ -68,7 +68,7 @@ Model ResourceManager::GetModel(std::string name)
 Mix_Music* ResourceManager::LoadMusic(std::string file, std::string name){
     Musics[name] = Mix_LoadMUS(file.c_str());
     if (!Musics[name])
-        cout << "ERROR::SDL_MIXER:: " <<  Mix_GetError() << endl;
+        std::cout << "ERROR::SDL_MIXER: " <<  Mix_GetError() << std::endl;
     return Musics[name];
 }
 
@@ -79,7 +79,7 @@ Mix_Music* ResourceManager::GetMusic(std::string name){
 Mix_Chunk* ResourceManager::LoadSound(std::string file, std::string name){
     Sons[name] = Mix_LoadWAV(file.c_str());
     if (!Sons[name])
-        cout << "ERROR::SDL_MIXER:: " <<  Mix_GetError() << endl;
+        std::cout << "ERROR::SDL_MIXER: " <<  Mix_GetError() << std::endl;
     return Sons[name];
 }
 
@@ -206,7 +206,7 @@ Model ResourceManager::loadModelFromFile(std::string file){
     // Check for errors
     if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
     {
-        cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+        std::cout << "ERROR::ASSIMP: " << importer.GetErrorString() << std::endl;
     }
     // Retrieve the directory path of the filepath
     model.directory = file.substr(0, file.find_last_of('/'));
